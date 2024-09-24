@@ -64,11 +64,11 @@ readonly class RecursionContext implements ArrayAccess, JsonSerializable
     }
 
     /**
-     * @param callable(): mixed $callable
+     * @param callable(): mixed|array{0: object|class-string, 1: string} $callable
      * @return self
      * @throws ReflectionException
      */
-    public static function fromCallable(callable $callable): self
+    public static function fromCallable(callable|array $callable): self
     {
         return (match (true) {
             is_string($callable), $callable instanceof Closure => function (string|Closure $callable) {
@@ -77,20 +77,24 @@ readonly class RecursionContext implements ArrayAccess, JsonSerializable
                     $reflector->getFileName() ?: '',
                     $reflector->getClosureScopeClass()?->getName() ?? '',
                     $reflector->getName() === '{closure}'
-                        ? str_replace("\n", ' ', (string)$reflector)
+                        ? (string)$reflector
                         : $reflector->getName(),
                     $reflector->getStartLine() ?: 0,
                     $reflector->getClosureThis(),
                 );
             },
-            is_object($callable) && method_exists($callable, '__invoke') => function (object $callable) {
-                $reflector = new ReflectionClass($callable);
+            is_object($callable) && method_exists($callable, '__invoke'),
+            is_array($callable) => function (object|array $callable) {
+                [$object, $method] = (is_array($callable) ? $callable : [$callable, '__invoke']);
+                $class = new ReflectionClass($object);
+                $reflector = $class->getMethod($method);
+
                 return new self(
-                    $reflector->getFileName() ?: '',
+                    $class->getFileName() ?: '',
+                    $class->getName(),
                     $reflector->getName(),
-                    '__invoke',
                     $reflector->getStartLine() ?: 0,
-                    $callable,
+                    is_object($object) ? $object : null,
                 );
             },
             default => fn (callable $callable) => throw InvalidContextException::make($callable),

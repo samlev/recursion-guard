@@ -24,7 +24,7 @@ readonly class RecursionContextStub extends RecursionContext
         return parent::fromTrace($trace);
     }
 
-    public static function fromCallable(callable $callable): RecursionContext
+    public static function fromCallable(callable|array $callable): RecursionContext
     {
         StubSpy::instance()->call(__METHOD__, [$callable]);
 
