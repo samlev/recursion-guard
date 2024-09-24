@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use RecursionGuard\Data\Trace;
 use RecursionGuard\Exception\InvalidContextException;
 
 covers(InvalidContextException::class);
@@ -18,8 +19,13 @@ test('it makes exception with generated message', function (mixed $from, string 
 })->with([
     'invalid array' => [['foo' => 'bar'], 'Invalid backtrace provided: {"foo":"bar"}'],
     'empty array' => [[], 'Empty backtrace provided.'],
-    'callable' => [function () {
-    }, 'Invalid context provided.'],
+    'empty trace' => [Trace::make([]), 'Empty backtrace provided.'],
+    'callable' => [
+        function () {
+            return 'foo';
+        },
+        'Invalid context provided.'
+    ],
     'null' => [null, 'Invalid context provided.'],
 ]);
 

@@ -55,7 +55,7 @@
         "test:feat": "pest --testsuite Feature",
         "test:unit": "pest --testsuite Unit",
         "test:para": "pest --parallel",
-        "test:mutate": "pest --mutate --parallel",
+        "test:mutate": "XDEBUG_MODE=coverage pest --mutate --parallel",
         "test": [
             "@test:stan",
             "@test:para"
