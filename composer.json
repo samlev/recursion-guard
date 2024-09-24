@@ -1,0 +1,64 @@
+{
+    "name": "samlev/recursion-guard",
+    "description": "A simple, zero-dependency mechanism for preventing infinite recursion in PHP",
+    "type": "library",
+    "require": {
+        "php": "^8.2"
+    },
+    "require-dev": {
+        "pestphp/pest": "^3.2",
+        "squizlabs/php_codesniffer": "^4.0",
+        "phpstan/phpstan": "^2.0",
+        "friendsofphp/php-cs-fixer": "^3.0",
+        "mockery/mockery": "^1.6"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Samuel Levy",
+            "email": "sam@determineddevelopment.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "RecursionGuard\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "lint:phpcsfixer": "php-cs-fixer check ./src --rules=@PSR12 -v",
+        "lint:phpcs": "phpcs ./",
+        "lint:fix-phpcsfixer": "php-cs-fixer fix ./src --rules=@PSR12 -v",
+        "lint:fix-phpcs": "phpcbf ./",
+        "lint": [
+            "@lint:phpcsfixer",
+            "@lint:phpcs"
+        ],
+        "lint:fix": [
+            "@lint:fix-phpcsfixer",
+            "@lint:fix-phpcs",
+            "@lint"
+        ],
+        "test:stan": "phpstan analyse",
+        "test:arch": "pest --testsuite Architecture",
+        "test:feat": "pest --testsuite Feature",
+        "test:unit": "pest --testsuite Unit",
+        "test:para": "pest --parallel",
+        "test:mutate": "pest --mutate --parallel",
+        "test": [
+            "@test:stan",
+            "@test:para"
+        ]
+    }
+}
