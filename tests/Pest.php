@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use RecursionGuard\Recurser;
 use Tests\Support\StubSpy;
 use Tests\TestCase;

@@ -37,9 +37,9 @@
         }
     },
     "scripts": {
-        "lint:phpcsfixer": "php-cs-fixer check ./src --rules=@PSR12 -v",
+        "lint:phpcsfixer": "php-cs-fixer check",
         "lint:phpcs": "phpcs ./",
-        "lint:fix-phpcsfixer": "php-cs-fixer fix ./src --rules=@PSR12 -v",
+        "lint:fix-phpcsfixer": "php-cs-fixer fix",
         "lint:fix-phpcs": "phpcbf ./",
         "lint": [
             "@lint:phpcsfixer",

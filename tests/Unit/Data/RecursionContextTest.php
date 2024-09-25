@@ -123,29 +123,29 @@ test('it should make from callable array', function (callable $from) {
         ->and($context->object)->toEqual(is_object($from[0]) ? $from[0] : null)
         ->and($context->signature())->toBe(sprintf(
             '%s:%s@%s',
-	    $class->getFileName(),
-	    $class->getName(),
-	    $method->getName(),
+            $class->getFileName(),
+            $class->getName(),
+            $method->getName(),
         ));
 })->with([
     'class string' => [[RecursionContext::class, 'make']],
-    'object method' => [[new RecursionContext, 'signature']],
-    'object static method' => [[new RecursionContext, 'make']],
-    'invokeable class' => [[new class {
-	public function __invoke(): void
-	{
-	    //
-	}
+    'object method' => [[new RecursionContext(), 'signature']],
+    'object static method' => [[new RecursionContext(), 'make']],
+    'invokeable class' => [[new class () {
+        public function __invoke(): void
+        {
+            //
+        }
     }, '__invoke']],
     'built-in string' => [['DateTime', 'createFromFormat']],
-    'built-in object' => [[new \DateTime, 'format']],
+    'built-in object' => [[new \DateTime(), 'format']],
 ]);
 
 test('it should make from invokable class', function () {
-    $from = new class {
+    $from = new class () {
         public function __invoke(): void
-	{
-	    //
+        {
+            //
         }
     };
 
@@ -161,9 +161,8 @@ test('it should make from invokable class', function () {
         ->and($context->object)->toEqual($from)
         ->and($context->signature())->toBe(sprintf(
             '%s:%s@%s',
-	    __FILE__,
-	    $class->getName(),
-	    '__invoke',
+            __FILE__,
+            $class->getName(),
+            '__invoke',
         ));
 });
-
