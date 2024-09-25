@@ -56,10 +56,10 @@ readonly class RecursionContext implements ArrayAccess, JsonSerializable
 
         return new self(
             $trace[0]->file ?: '',
-            $trace[1]?->class ?? '',
-            $trace[1]?->function ?? '',
+            $trace[1]->class ?? '',
+            $trace[1]->function ?? '',
             $trace[0]->line,
-            $trace[1]?->object ?? null,
+            $trace[1]->object ?? null,
         );
     }
 
