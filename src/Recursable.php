@@ -22,8 +22,8 @@ class Recursable
     public readonly Closure $callback;
     protected mixed $recurseWith;
     protected object|null $object;
-    protected bool $started = false;
-    protected int $stackDepth = 0;
+    protected bool $started;
+    protected int $stackDepth;
 
     /**
      * @param callable(): TReturnType $callback
@@ -34,10 +34,12 @@ class Recursable
         mixed $recurseWith = null,
         string $signature = '',
     ) {
-        $this->callback = $callback instanceof Closure ? $callback : $callback(...);
+        $this->callback = $callback(...);
         $this->signature = $signature ?: RecursionContext::fromCallable($callback)->signature();
         $this->hash = static::hashSignature($this->signature);
         $this->recurseWith = $recurseWith;
+        $this->started = false;
+        $this->stackDepth = 0;
     }
 
     /**

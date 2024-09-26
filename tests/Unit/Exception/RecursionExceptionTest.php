@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use RecursionGuard\Exception\RecursionException;
 use RecursionGuard\Recursable;
+use Tests\Support\Stubs\RecursableStub;
 
 covers(RecursionException::class);
 
@@ -29,31 +30,27 @@ test('it makes exception with generated message', function (Recursable $recursab
         ->and($exception->getPrevious())->toBeNull();
 })->with([
     'not started' => [
-        Recursable::make(function () {
-        }, signature: 'foo'),
+        Recursable::make(fn () => null, signature: 'foo'),
         'Call stack for [foo] has not commenced.',
     ],
     'started' => [
-        new class (function () {
-        }, signature: 'foo') extends Recursable {
-            protected bool $started = true;
-            protected int $stackDepth = 1;
-        },
+        RecursableStub::make(fn () => null, signature: 'foo')->state(
+            started: true,
+            stackDepth: 1,
+        ),
         'Callback for [foo] has been called recursively.'
     ],
     'finished' => [
-        new class (function () {
-        }, signature: 'foo') extends Recursable {
-            protected bool $started = true;
-        },
+        RecursableStub::make(fn () => null, signature: 'foo')->state(
+            started: true,
+        ),
         'Call stack for [foo] has completed.'
     ],
     'recursing' => [
-        new class (function () {
-        }, signature: 'foo') extends Recursable {
-            protected bool $started = true;
-            protected int $stackDepth = 2;
-        },
+        RecursableStub::make(fn () => null, signature: 'foo')->state(
+            started: true,
+            stackDepth: 2,
+        ),
         'Callback for [foo] has been called while resolving return value.'
     ],
 ]);

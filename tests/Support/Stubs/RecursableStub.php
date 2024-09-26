@@ -12,4 +12,13 @@ class RecursableStub extends Recursable
 {
     use ExposesStaticMethods;
     use ExposesProtectedProperties;
+
+    public function state(...$params): static
+    {
+        foreach ($params as $prop => $value) {
+            $this->{$prop} = $value;
+        }
+
+        return $this;
+    }
 }
