@@ -13,12 +13,12 @@ jobs:
       matrix:
         php: [8.2, 8.3]
         command: [
-          'php-cs-fixer ./src --rules=@PSR12 --dry-run -v',
+          'php-cs-fixer check -v',
           'phpcs src/',
           'phpstan analyse',
         ]
 
-    name: Run ${{ matrix.command }} - PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }}
+    name: Run ${{ matrix.command }} - PHP ${{ matrix.php }}
 
     steps:
       - name: Checkout code
@@ -33,8 +33,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          composer require "illuminate/contracts=^${{ matrix.laravel }}" --prefer-dist --no-interaction --no-update
-          composer update --prefer-dist --no-interaction --no-progress
+          composer install --prefer-dist --no-interaction --no-progress
 
       - name: Lint code
         run: vendor/bin/${{ matrix.command }}
