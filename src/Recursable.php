@@ -68,7 +68,7 @@ class Recursable
 
     public function object(): ?object
     {
-        return $this->object;
+        return $this->object ?? null;
     }
 
     /**

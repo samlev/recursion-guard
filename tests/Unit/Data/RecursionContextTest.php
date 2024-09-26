@@ -187,9 +187,9 @@ test('it should make from callable functions', function (callable $from) {
     $name = $reflector->getName() === '{closure}' ? (string)$reflector : $reflector->getName();
 
     expect($context->file)->toBe($reflector->getFileName() ?: '')
-        ->and($context->line)->toBe($reflector->getStartLine() ?: 0)
         ->and($context->function)->toBe($name)
         ->and($context->class)->toBe($reflector->getClosureScopeClass()?->getName() ?: '')
+        ->and($context->line)->toBe($reflector->getStartLine() ?: 0)
         ->and($context->object)->toEqual($reflector->getClosureThis())
         ->and($context->signature())->toBe(sprintf(
             '%s:%s',
@@ -213,9 +213,9 @@ test('it should make from callable array', function (callable $from) {
     $method = $class->getMethod($from[1]);
 
     expect($context->file)->toBe($class->getFileName() ?: '')
-        ->and($context->line)->toBe($method->getStartLine() ?: 0)
         ->and($context->function)->toBe($method->getName())
         ->and($context->class)->toBe($class->getName())
+        ->and($context->line)->toBe($method->getStartLine() ?: 0)
         ->and($context->object)->toEqual(is_object($from[0]) ? $from[0] : null)
         ->and($context->signature())->toBe(sprintf(
             '%s:%s@%s',
