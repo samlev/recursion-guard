@@ -17,7 +17,7 @@ use RecursionGuard\Support\ArrayWritesForbidden;
  *     'object'?: ?object,
  * }
  *
- * @implements ArrayAccess<string<'file'|'line'|'class'|'function'|'object'>, int|string|object|null>
+ * @implements ArrayAccess<'file'|'line'|'class'|'function'|'object', int|string|object|null>
  */
 readonly class Frame implements ArrayAccess, JsonSerializable
 {

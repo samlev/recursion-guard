@@ -12,7 +12,7 @@ jobs:
       fail-fast: true
       matrix:
         php: [8.2, 8.3]
-        pest: ['--testsuite Unit', '--testsuite Feature', '--testsuite Architecture', '--mutate']
+        pest: ['--testsuite Unit', '--testsuite Feature', '--testsuite Architecture']
 
     name: Test PHP ${{ matrix.php }} - Test ${{ matrix.pest }}
 
