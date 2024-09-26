@@ -88,8 +88,8 @@ readonly class Frame implements ArrayAccess, JsonSerializable
     {
         return [
             'file' => $this->file,
-            'class' => $this->class,
             'function' => $this->function,
+            'class' => $this->class,
             'line' => $this->line,
             'object' => $this->object,
         ];

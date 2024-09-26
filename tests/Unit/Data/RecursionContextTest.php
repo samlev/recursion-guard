@@ -12,17 +12,17 @@ test('it makes new with defaults', function ($from, $signature) {
     $context = new RecursionContext(...$from);
 
     expect($context->file)->toBe($from['file'] ?? '')
-        ->and($context->line)->toBe($from['line'] ?? 0)
         ->and($context->function)->toBe($from['function'] ?? '')
         ->and($context->class)->toBe($from['class'] ?? '')
+        ->and($context->line)->toBe($from['line'] ?? 0)
         ->and($context->object)->toBe($from['object'] ?? null)
         ->and($context->signature())->toBe($signature);
 })->with([
     'none' => [[], ':0'],
     'file' => [['file' => 'foo.php'], 'foo.php:0'],
-    'line' => [['line' => 42], ':42'],
     'function' => [['function' => 'foo'], ':foo'],
     'class' => [['class' => 'foo'], ':foo@0'],
+    'line' => [['line' => 42], ':42'],
     'object' => [['object' => (object) []], ':0'],
 ]);
 
@@ -263,54 +263,40 @@ test('it should make from invokable class', function () {
         ));
 });
 
-test('it allows read-onlyarray access to properties', function () {
-    $object = (object) [];
+test('it only allows array read access to properties', function ($offset, $set, $exists, $value) {
     $context = new RecursionContext(
         'foo.php',
         'baz',
         'bar',
         42,
-        $object,
+        (object) [],
     );
 
-    expect($context->offsetExists('file'))->toBeTrue()
-        ->and($context->offsetExists('line'))->toBeTrue()
-        ->and($context->offsetExists('function'))->toBeTrue()
-        ->and($context->offsetExists('class'))->toBeTrue()
-        ->and($context->offsetExists('object'))->toBeTrue()
-        ->and($context->offsetExists('signature'))->toBeTrue()
-        ->and($context->offsetExists('foo'))->toBeFalse()
-        ->and($context->offsetExists('trace'))->toBeFalse()
-        ->and($context->offsetExists(0))->toBeFalse()
-        ->and($context->offsetExists(1))->toBeFalse()
-        ->and($context->offsetExists(42))->toBeFalse()
-        ->and(isset($context['file']))->toBeTrue()
-        ->and(isset($context['line']))->toBeTrue()
-        ->and(isset($context['function']))->toBeTrue()
-        ->and(isset($context['class']))->toBeTrue()
-        ->and(isset($context['object']))->toBeTrue()
-        ->and(isset($context['signature']))->toBeTrue()
-        ->and(isset($context['foo']))->toBeFalse()
-        ->and(isset($context['trace']))->toBeFalse()
-        ->and(isset($context[0]))->toBeFalse()
-        ->and(isset($context[1]))->toBeFalse()
-        ->and(isset($context[42]))->toBeFalse();
+    $message = RecursionContext::class . ' is read-only';
 
-    expect($context->offsetGet('file'))->toBe('foo.php')
-        ->and($context->offsetGet('line'))->toBe(42)
-        ->and($context->offsetGet('function'))->toBe('bar')
-        ->and($context->offsetGet('class'))->toBe('baz')
-        ->and($context->offsetGet('object'))->toBe($object)
-        ->and($context->offsetGet('signature'))->toBe('foo.php:baz@bar')
-        ->and($context->offsetGet('foo'))->toBeNull()
-        ->and($context->offsetGet('callable'))->toBeNull()
-        ->and($context->offsetGet(0))->toBeNull()
-        ->and($context->offsetGet(1))->toBeNull()
-        ->and($context->offsetGet(43))->toBeNull()
-        ->and($context['file'])->toBe('foo.php')
-        ->and($context['line'])->toBe(42)
-        ->and($context['function'])->toBe('bar')
-        ->and($context['class'])->toBe('baz')
-        ->and($context['object'])->toBe($object)
-        ->and($context['signature'])->toBe('foo.php:baz@bar');
-});
+    expect(fn () => $context->offsetSet($offset, $set))->toThrow(\RuntimeException::class, $message)
+        ->and($context->offsetGet($offset))->toEqual($value)
+        ->and(fn () => $context->offsetUnset($offset))->toThrow(\RuntimeException::class, $message)
+        ->and($context->offsetExists($offset))->toEqual($exists)
+        ->and(function () use (&$context, $offset, $set) {
+            $context[$offset] = $set;
+        })->toThrow(\RuntimeException::class, $message)
+        ->and($context[$offset])->toEqual($value)
+        ->and(function () use (&$context, $offset) {
+            unset($context[$offset]);
+        })->toThrow(\RuntimeException::class, $message)
+        ->and(isset($context[$offset]))->toEqual($exists);
+})->with([
+    'file' => ['file', 'bing.php', true, 'foo.php'],
+    'function' => ['function', 'bang', true, 'bar'],
+    'class' => ['class', 'bong', true, 'baz'],
+    'line' => ['line', 99, true, 42],
+    'object' => ['object', new RecursionContext(), true, (object) []],
+    'signature' => ['signature', 'bing.php:bang@bong', true, 'foo.php:baz@bar'],
+    'unknown string' => ['foo', 'foo', false, null],
+    'static method' => ['make', 'bar', false, null],
+    'instance method' => ['jsonSerialize', 'bing', false, null],
+    'first index' => [0, 1, false, null],
+    'last index' => [5, 6, false, null],
+    'random index' => [random_int(PHP_INT_MIN, PHP_INT_MAX), 42, false, null],
+]);
