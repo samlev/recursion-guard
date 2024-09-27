@@ -26,19 +26,23 @@ it('repeats a string', function () {
     expect($repeat)->toEqual('foo : foo');
 });
 
-it('resolves the random integer again for each call', function () {
-    $one = bozo_repeat();
-    $two = bozo_repeat();
+it('can resolve different random integers for each call', function () {
+    $calls = [
+        bozo_repeat(),
+        bozo_repeat(),
+        bozo_repeat(),
+        bozo_repeat(),
+        bozo_repeat(),
+        bozo_repeat(),
+        bozo_repeat(),
+        bozo_repeat(),
+        bozo_repeat(),
+        bozo_repeat(),
+    ];
 
-    expect($one)->toMatch('/^bozo\(\d+\) : bozo\(\d+\)$/')
-        ->not->toEqual($two)
-        ->and($two)->toMatch('/^bozo\(\d+\) : bozo\(\d+\)$/');
-
-    $oneParts = explode(' : ', $one);
-    $twoParts = explode(' : ', $two);;
-
-    expect($oneParts[0])->toEqual($oneParts[1])
-        ->not->toEqual($twoParts[0])
-        ->not->toEqual($twoParts[1])
-        ->and($twoParts[0])->toEqual($twoParts[1]);
+    expect($calls)->each->toMatch('/^bozo\(\d+\) : bozo\(\d+\)$/')
+        // each call should have the same random integer for both parts
+        ->and(array_map(fn ($call) => array_unique(explode(' : ', $call)), $calls))->each->toHaveCount(1)
+        // we might get some repeats, but we should always have more than one unique string
+        ->and(count(array_unique($calls)))->toBeGreaterThan(1);
 });

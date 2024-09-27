@@ -102,8 +102,27 @@ through(through(through('foo', 'strtoupper'), 'str_split'), 'array_unique');  //
 
 pipe('foo', strtoupper(...), str_split(...), array_unique(...)); // ['F', 'O']
 
-$unique = fn ($value) => pipe($value, strtoupper(...), str_split(...), array_unique(...));
-$unique('foo'); // ['F', 'O']
+$unique = new class {
+    public function __invoke(mixed $value)
+    {
+        return is_array($value)
+            ? pipe($value, $this->strings(...), $this->alphanumeric(...), array_unique(...), array_values(...))
+            : pipe($value, str_split(...), $this->alphanumeric(...), array_unique(...), array_values(...));
+    }
+
+    protected function strings(array $values): array
+    {
+        return array_filter($values, 'is_string');
+    }
+
+    protected function alphanumeric(array $values): array
+    {
+        return array_filter($values, 'ctype_alnum');
+    }
+};
+$unique('foo'); // ['f', 'o']
+$unique('foo bar baz'); // ['f', 'o', 'b', 'a', 'r', 'z']
+$unique(['F', 'O', 'O']); // ['F', 'O']
 
 // Calling $unique through the `through` or `pipe` function will trigger the recursion guard
 through('foo', $unique); // 'foo'
