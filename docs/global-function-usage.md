@@ -5,6 +5,8 @@ Here is a simple example of how to use the recursion guard with a global functio
 itself recursively, but only the first call will actually execute the callback. The second and subsequent calls will
 return the default value instead.
 
+[See the tests](../tests/Documentation/BozoRepeatTest.php)
+
 ```php
 function bozo_repeat(string $repeat = ''): string
 {
@@ -12,7 +14,7 @@ function bozo_repeat(string $repeat = ''): string
         // The callback that we want to call
         fn () => bozo_repeat() . ' : ' . bozo_repeat(),
         // What to return if this function is called recursively
-        $repeat ?: 'bozo(' . random_int(0, 100)) . ')';
+        $repeat ?: 'bozo(' . random_int(0, 100) . ')'
     );
 }
 
@@ -20,6 +22,7 @@ bozo_repeat(); // 'bozo(4) : bozo(4)'
 bozo_repeat('foo'); // 'foo : foo'
 bozo_repeat(); // 'bozo(88) : bozo(88)'
 ```
+
 Notice that the default value is also only evaluated once. When the callback returns, the call stack is released, and
 the function can be called again for new values.
 
@@ -54,6 +57,8 @@ callback calls the parent function again.
 The protection from the recursion guard is tied to the call stack, and will be released after the top level call is
 finally resolved. This means that if you call a method which calls the original function without calling the original
 function directly, the recursion guard will still work as expected.
+
+[See the tests](../tests/Documentation/BozoRepeatTest.php)
 
 ```php
 function once(callable $callback)
@@ -117,3 +122,5 @@ once('roll_two_dice'):
             once('roll_dice') // 'RECURSION'
             once('roll_dice') // 'RECURSION'
 ```
+
+[See the tests](../tests/Documentation/RollDiceTest.php)

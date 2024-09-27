@@ -52,6 +52,7 @@
         ],
         "test:stan": "phpstan analyse",
         "test:arch": "pest --testsuite Architecture",
+        "test:docs": "pest --testsuite Documentation",
         "test:feat": "pest --testsuite Feature",
         "test:unit": "pest --testsuite Unit",
         "test:para": "pest --parallel",

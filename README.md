@@ -32,5 +32,5 @@ bozo_repeat('foo'); // 'foo : foo'
 bozo_repeat(); // 'bozo(88) : bozo(88)'
 ```
 
-See [documentation](docs/index.md#usage) for more explanation, examples, and advanced usage.
+See [the documentation](docs/index.md) for more explanation, examples, and advanced usage.
 
