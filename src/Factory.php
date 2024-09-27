@@ -35,8 +35,6 @@ class Factory
     }
 
     /**
-     * Create a new recursable instance.
-     *
      * @template TReturnType
      *
      * @param callable(): TReturnType $callback
@@ -64,11 +62,7 @@ class Factory
     }
 
     /**
-     * Create a new context instance.
-     *
-     * @param callable $callback
      * @param Trace|Frame[]|FrameArray[] $backTrace
-     * @return RecursionContext
      */
     public function makeContext(callable $callback, Trace|array $backTrace = []): RecursionContext
     {
@@ -77,33 +71,24 @@ class Factory
             : $this->makeContextFromCallable($callback);
     }
 
-    /**
-     * Create a new context instance from a trace.
-     *
-     * @param Trace $trace
-     * @return RecursionContext
-     */
     public function makeContextFromTrace(Trace $trace): RecursionContext
     {
         if ($trace->empty()) {
             throw InvalidContextException::make($trace);
         }
 
-        return new $this->contextClass(
-            $trace[0]?->file ?: '',
-            $trace[1]?->class ?? '',
-            $trace[1]?->function ?? '',
-            $trace[0]?->line ?? 0,
-            $trace[1]?->object ?? null,
-        );
+        $caller = $trace->frames()[0];
+        $called = $trace->frames()[1] ?? null;
+
+        return new $this->contextClass(...array_filter([
+            'file' => $caller->file,
+            'class' => $called?->class,
+            'function' => $called?->function,
+            'line' => $caller->line,
+            'object' => $called?->object,
+        ]));
     }
 
-    /**
-     * Create a new context instance from a closure.
-     *
-     * @param callable(): mixed $callable
-     * @return RecursionContext
-     */
     public function makeContextFromCallable(callable $callable): RecursionContext
     {
         if (is_string($callable) || $callable instanceof Closure) {
@@ -119,12 +104,6 @@ class Factory
         throw InvalidContextException::make($callable);
     }
 
-    /**
-     * Create a new context instance from a closure.
-     *
-     * @param Closure|(string&callable) $callable
-     * @return RecursionContext
-     */
     public function makeContextFromFunction(Closure|string $callable): RecursionContext
     {
         if (!is_callable($callable)) {
@@ -148,12 +127,6 @@ class Factory
         }
     }
 
-    /**
-     * Create a new context instance from an object.
-     *
-     * @param object&callable $callable
-     * @return RecursionContext
-     */
     public function makeContextFromObject(object $callable): RecursionContext
     {
         if (!is_callable($callable)) {
@@ -177,10 +150,7 @@ class Factory
     }
 
     /**
-     * Create a new context instance from a callable array.
-     *
-     * @param callable&array{0: object|class-string, 1: non-empty-string} $callable
-     * @return RecursionContext
+     * @param array{0: object|class-string, 1: non-empty-string} $callable
      */
     public function makeContextFromCallableArray(array $callable): RecursionContext
     {
@@ -206,10 +176,7 @@ class Factory
     }
 
     /**
-     * Create a trace instance.
-     *
      * @param Trace|Frame[]|FrameArray[] $trace
-     * @return Trace
      */
     public function makeTrace(array|Trace $trace): Trace
     {
@@ -219,10 +186,7 @@ class Factory
     }
 
     /**
-     * Create a frame instance.
-     *
      * @param array<string, mixed>|Frame $frame
-     * @return Frame
      */
     public function makeFrame(array|Frame $frame): Frame
     {

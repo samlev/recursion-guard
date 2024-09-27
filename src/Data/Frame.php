@@ -35,7 +35,12 @@ readonly class Frame implements ArrayAccess, JsonSerializable
 
     public function empty(): bool
     {
-        return !($this->file || $this->class || $this->function || $this->line || $this->object);
+        return
+            $this->file === ''
+            && empty($this->class)
+            && empty($this->function)
+            && $this->line === 0
+            && $this->object === null;
     }
 
     /**

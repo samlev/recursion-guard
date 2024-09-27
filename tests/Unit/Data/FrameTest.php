@@ -7,7 +7,7 @@ use RecursionGuard\Data\RecursionContext;
 
 covers(Frame::class);
 
-it('makes new with defaults', function ($from) {
+it('makes new with defaults', function ($from, $empty) {
     $frame = new Frame(...$from);
 
     expect($frame->file)->toBe($from['file'] ?? '')
@@ -21,21 +21,8 @@ it('makes new with defaults', function ($from) {
             'class' => $from['class'] ?? null,
             'line' => $from['line'] ?? 0,
             'object' => $from['object'] ?? null,
-        ]);
-})->with([
-    'none' => [[]],
-    'file' => [['file' => 'foo.php']],
-    'line' => [['line' => 42]],
-    'function' => [['function' => 'foo']],
-    'class' => [['class' => 'foo']],
-    'object' => [['object' => (object) []]],
-    'all' => [['file' => 'foo.php', 'line' => 42, 'function' => 'foo', 'class' => 'foo', 'object' => (object) []]],
-]);
-
-it('marks empty frames as empty', function ($from, $empty) {
-    $frame = new Frame(...$from);
-
-    expect($frame->empty())->toBe($empty);
+        ])
+        ->and($frame->empty())->toBe($empty);
 })->with([
     'none' => [[], true],
     'file' => [['file' => 'foo.php'], false],

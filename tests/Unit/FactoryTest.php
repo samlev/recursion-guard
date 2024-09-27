@@ -3,12 +3,16 @@
 declare(strict_types=1);
 
 use RecursionGuard\Data\Frame;
+use RecursionGuard\Data\RecursionContext;
 use RecursionGuard\Data\Trace;
 use RecursionGuard\Exception\InvalidContextException;
 use RecursionGuard\Factory;
 use Tests\Support\Stubs\FactoryStub;
 
 covers(Factory::class);
+covers(Frame::class);
+covers(RecursionContext::class);
+covers(Trace::class);
 
 it('makes frame', function ($from) {
     $factory = new Factory();
@@ -340,11 +344,20 @@ it('uses the correct context make method', function ($closure, $trace, $expected
     $factory->attach($observer);
 
     if ($expected === 'trace') {
+        $frames = array_map(function ($frame) {
+            $parts = array_filter(array_intersect_key(
+                $frame,
+                array_flip(['file', 'class', 'function', 'line', 'object']),
+            ));
+
+            return new Frame(...$parts);
+        }, $trace);
+
+        $made = new Trace($frames);
+
         $observer->expects($this->once())
             ->method('makeTrace')
             ->with($trace);
-
-        $made = new Trace(array_map($factory->makeFrame(...), $trace));
 
         if ($made->empty()) {
             $this->expectException(InvalidContextException::class);
