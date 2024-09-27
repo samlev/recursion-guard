@@ -33,6 +33,24 @@ test('it hashes signature on make', function () {
         ->and($recursable->hash)->toBe(hash('xxh128', $signature));
 })->repeat(10);
 
+test('it reports state correctly', function ($state, $started, $running, $recursing, $finished) {
+    $recursable = RecursableStub::make(fn () => null)->state(...$state);
+
+    expect($recursable->started())->toBe($started)
+        ->and($recursable->running())->toBe($running)
+        ->and($recursable->recursing())->toBe($recursing)
+        ->and($recursable->finished())->toBe($finished)
+        ->and($recursable->expose_started)->toBe($started)
+        ->and($recursable->expose_stackDepth)->toBe($state['stackDepth'] ?? 0);
+})->with([
+    'standard' => [[], false, false, false, false],
+    'running' => [['started' => true, 'stackDepth' => 1], true, true, false, false],
+    'recursing' => [['started' => true, 'stackDepth' => 2], true, true, true, false],
+    'finished' => [['started' => true], true, false, false, true],
+    'impossible state: stack depth before starting' => [['stackDepth' => 1], false, false, false, false],
+    'impossible state: high depth' => [['started' => true, 'stackDepth' => 3], true, true, true, false],
+]);
+
 test('it uses closure as callback directly on new', function (callable $callable) {
     $recursable = new Recursable($callable);
 
@@ -221,6 +239,25 @@ test('it generates signature from invokable class on make', function () {
         ->and($recursable->hash)->toBe(hash('xxh128', $signature))
         ->and($recursable->object())->toBe($callable);
 });
+
+test('it generates signature from backtrace  on make', function ($trace, $signature) {
+    $recursable = Recursable::make(fn () => null, backTrace: $trace);
+
+    expect($recursable->signature)->toBe($signature)
+        ->and($recursable->hash)->toBe(hash('xxh128', $signature));
+})->with([
+    'single frame trace' => [
+        [['file' => 'foo.php', 'line' => 42]],
+        'foo.php:42',
+    ],
+    'multi frame trace' => [
+        [
+            ['file' => 'foo.php', 'line' => 42],
+            ['class' => 'bar', 'function' => 'baz', 'object' => null],
+        ],
+        'foo.php:bar@baz',
+    ],
+]);
 
 test('it overrides parts on make', function () {
     $callable = new class () {
