@@ -8,14 +8,14 @@ use Tests\Support\Stubs\RecursableStub;
 
 covers(Recursable::class);
 
-test('it hashes signature', function () {
+it('hashes signature', function () {
     $signature = random_bytes(16);
 
     expect(RecursableStub::expose_hashSignature($signature))
         ->toBe(hash('xxh128', $signature));
 })->repeat(10);
 
-test('it hashes signature on new', function () {
+it('hashes signature on creation', function () {
     $signature = random_bytes(16);
 
     $recursable = new Recursable(fn () => null, signature: $signature);
@@ -24,17 +24,8 @@ test('it hashes signature on new', function () {
         ->and($recursable->hash)->toBe(hash('xxh128', $signature));
 })->repeat(10);
 
-test('it hashes signature on make', function () {
-    $signature = random_bytes(16);
-
-    $recursable = Recursable::make(fn () => null, signature: $signature);
-
-    expect($recursable->signature)->toBe($signature)
-        ->and($recursable->hash)->toBe(hash('xxh128', $signature));
-})->repeat(10);
-
-test('it reports state correctly', function ($state, $started, $running, $recursing, $finished) {
-    $recursable = RecursableStub::make(fn () => null)->state(...$state);
+it('reports state correctly', function ($state, $started, $running, $recursing, $finished) {
+    $recursable = (new RecursableStub(fn () => null))->state(...$state);
 
     expect($recursable->started())->toBe($started)
         ->and($recursable->running())->toBe($running)
@@ -51,7 +42,7 @@ test('it reports state correctly', function ($state, $started, $running, $recurs
     'impossible state: high depth' => [['started' => true, 'stackDepth' => 3], true, true, true, false],
 ]);
 
-test('it uses closure as callback directly on new', function (callable $callable) {
+it('uses closure callable for callback', function (callable $callable) {
     $recursable = new Recursable($callable);
 
     expect($recursable->callback)
@@ -66,7 +57,7 @@ test('it uses closure as callback directly on new', function (callable $callable
     'made closure' => [\Closure::fromCallable('rand')],
 ]);
 
-test('it wraps non-closure callback in closure on new', function (callable $callable) {
+it('wraps non-closure callable in closure for callback', function (callable $callable) {
     $recursable = new Recursable($callable);
 
     expect($recursable->callback)
@@ -86,7 +77,7 @@ test('it wraps non-closure callback in closure on new', function (callable $call
     }],
 ]);
 
-test('it generates signature from callback function on new', function (callable $callable) {
+it('generates signature from callback function', function (callable $callable) {
     $recursable = new Recursable($callable);
 
     $reflector = new ReflectionFunction($callable);
@@ -109,30 +100,7 @@ test('it generates signature from callback function on new', function (callable 
     'first class callable' => [rand(...)],
 ]);
 
-test('it generates signature from callback function on make', function (callable $callable) {
-    $recursable = Recursable::make($callable);
-
-    $reflector = new ReflectionFunction($callable);
-
-    $file = $reflector->getFileName() ?: '';
-    $function = $reflector->getName() === '{closure}' ? (string)$reflector : $reflector->getName();
-    $class = $reflector->getClosureScopeClass()?->getName() ?: '';
-    $line = $reflector->getStartLine() ?: 0;
-    $signature = sprintf('%s:%s', $file, ($class ? ($class . '@') : '') . ($function ?: $line));
-
-    expect($recursable->signature)->toBe($signature)
-        ->and($recursable->hash)->toBe(hash('xxh128', $signature))
-        ->and($recursable->object())->toBeNull();
-})->with([
-    'short closure' => [fn () => 'foo'],
-    'long closure' => [function () {
-        return'foo';
-    }],
-    'callable string' => ['rand'],
-    'first class callable' => [rand(...)],
-]);
-
-test('it generates signature from callable array on new', function (callable $callable) {
+it('generates signature from callable array', function (callable $callable) {
     $recursable = new Recursable($callable);
 
     $class = new ReflectionClass($callable[0]);
@@ -162,37 +130,7 @@ test('it generates signature from callable array on new', function (callable $ca
     ]],
 ]);
 
-test('it generates signature from callable array on make', function (callable $callable) {
-    $recursable = Recursable::make($callable);
-
-    $class = new ReflectionClass($callable[0]);
-    $method = $class->getMethod($callable[1]);
-
-    $file = $class->getFileName() ?: '';
-    $function = $method->getName();
-    $class = $class->getName();
-    $line = $method->getStartLine() ?: 0;
-    $signature = sprintf('%s:%s', $file, ($class ? ($class . '@') : '') . ($function ?: $line));
-
-    expect($recursable->signature)->toBe($signature)
-        ->and($recursable->hash)->toBe(hash('xxh128', $signature))
-        ->and($recursable->object())->toBe(is_object($callable[0]) ? $callable[0] : null);
-})->with([
-    'static callable array' => [[\DateTime::class, 'createFromFormat']],
-    'instance callable array' => [[new \DateTime(), 'format']],
-    'static method on instance callable array' => [[new \DateTime(), 'createFromFormat']],
-    'invokable class' => [[
-        new class () {
-            public function __invoke(): string
-            {
-                return 'foo';
-            }
-        },
-        '__invoke',
-    ]],
-]);
-
-test('it generates signature from invokable class on new', function () {
+it('generates signature from invokable class', function () {
     $callable = new class () {
         public function __invoke(): string
         {
@@ -214,90 +152,6 @@ test('it generates signature from invokable class on new', function () {
     expect($recursable->signature)->toBe($signature)
         ->and($recursable->hash)->toBe(hash('xxh128', $signature))
         ->and($recursable->object())->toBeNull();
-});
-
-test('it generates signature from invokable class on make', function () {
-    $callable = new class () {
-        public function __invoke(): string
-        {
-            return 'foo';
-        }
-    };
-
-    $recursable = Recursable::make($callable);
-
-    $class = new ReflectionClass($callable);
-    $method = $class->getMethod('__invoke');
-
-    $file = $class->getFileName() ?: '';
-    $function = $method->getName();
-    $class = $class->getName();
-    $line = $method->getStartLine() ?: 0;
-    $signature = sprintf('%s:%s', $file, ($class ? ($class . '@') : '') . ($function ?: $line));
-
-    expect($recursable->signature)->toBe($signature)
-        ->and($recursable->hash)->toBe(hash('xxh128', $signature))
-        ->and($recursable->object())->toBe($callable);
-});
-
-test('it generates signature from backtrace  on make', function ($trace, $signature) {
-    $recursable = Recursable::make(fn () => null, backTrace: $trace);
-
-    expect($recursable->signature)->toBe($signature)
-        ->and($recursable->hash)->toBe(hash('xxh128', $signature));
-})->with([
-    'single frame trace' => [
-        [['file' => 'foo.php', 'line' => 42]],
-        'foo.php:42',
-    ],
-    'multi frame trace' => [
-        [
-            ['file' => 'foo.php', 'line' => 42],
-            ['class' => 'bar', 'function' => 'baz', 'object' => null],
-        ],
-        'foo.php:bar@baz',
-    ],
-]);
-
-test('it overrides parts on make', function () {
-    $callable = new class () {
-        public function __invoke(): string
-        {
-            return 'foo';
-        }
-    };
-
-    $object = (object) [];
-
-    $one = Recursable::make($callable);
-    $two = Recursable::make($callable, object: $object);
-    $three = Recursable::make($callable, signature: 'foo');
-    $four = Recursable::make($callable, backTrace: [
-        ['file' => 'foo.php', 'line' => 42],
-        ['class' => 'bar', 'function' => 'baz', 'object' => $object],
-    ]);
-
-    $class = new ReflectionClass($callable);
-    $method = $class->getMethod('__invoke');
-
-    $file = $class->getFileName() ?: '';
-    $function = $method->getName();
-    $class = $class->getName();
-    $line = $method->getStartLine() ?: 0;
-    $signature = sprintf('%s:%s', $file, ($class ? ($class . '@') : '') . ($function ?: $line));
-
-    expect($one->signature)->toBe($signature)
-        ->and($one->hash)->toBe(hash('xxh128', $signature))
-        ->and($one->object())->toBe($callable)
-        ->and($two->signature)->toBe($signature)
-        ->and($two->hash)->toBe(hash('xxh128', $signature))
-        ->and($two->object())->toBe($object)
-        ->and($three->signature)->toBe('foo')
-        ->and($three->hash)->toBe(hash('xxh128', 'foo'))
-        ->and($three->object())->toBe($callable)
-        ->and($four->signature)->toBe('foo.php:bar@baz')
-        ->and($four->hash)->toBe(hash('xxh128', 'foo.php:bar@baz'))
-        ->and($four->object())->toBe($object);
 });
 
 test('sets object only once', function () {

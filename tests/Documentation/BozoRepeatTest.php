@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 function bozo_repeat(string $repeat = ''): string
 {
     return RecursionGuard\Recurser::call(
-    // The callback that we want to call
+        // The callback that we want to call
         fn () => bozo_repeat() . ' : ' . bozo_repeat(),
         // What to return if this function is called recursively
         $repeat ?: 'bozo(' . random_int(0, 100) . ')'

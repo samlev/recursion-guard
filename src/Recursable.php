@@ -28,6 +28,7 @@ class Recursable
     /**
      * @param callable(): TReturnType $callback
      * @param TReturnType|callable(): TReturnType $recurseWith
+     * @throws \ReflectionException
      */
     final public function __construct(
         callable $callback,
@@ -35,37 +36,11 @@ class Recursable
         string $signature = '',
     ) {
         $this->callback = $callback(...);
-        $this->signature = $signature ?: RecursionContext::fromCallable($callback)->signature();
+        $this->signature = $signature ?: Recurser::instance()->factory->makeContextFromCallable($callback)->signature();
         $this->hash = static::hashSignature($this->signature);
         $this->recurseWith = $recurseWith;
         $this->started = false;
         $this->stackDepth = 0;
-    }
-
-    /**
-     * @param callable(): TReturnType $callback
-     * @param TReturnType|callable(): TReturnType $onRecursion
-     * @param object|null $object
-     * @param string|null $signature
-     * @param array<int, FrameArray> $backTrace
-     *
-     * @return static
-     * @throws \ReflectionException
-     */
-    public static function make(
-        callable $callback,
-        mixed $onRecursion = null,
-        ?object $object = null,
-        ?string $signature = null,
-        array $backTrace = [],
-    ): static {
-        $context = RecursionContext::make($backTrace ?: $callback);
-
-        return (new static(
-            $callback,
-            $onRecursion,
-            $signature ?: $context->signature(),
-        ))->forObject($object ?? $context->object);
     }
 
     public function object(): ?object

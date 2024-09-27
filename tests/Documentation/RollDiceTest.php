@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 function once(callable $callback)
 {
     return RecursionGuard\Recurser::call($callback, 'RECURSION');

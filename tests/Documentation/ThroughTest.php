@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 function through(mixed $value, callable $through): mixed
 {
     return RecursionGuard\Recurser::call(fn () => $through($value), $value);
@@ -27,7 +29,7 @@ it('does not recurse if nesting through calls', function () {
 it('returns default if piping through through', function () {
     $uppercase = fn (string $value) => through($value, strtoupper(...));
     $split = fn (string $value) => through($value, str_split(...));
-    $unique = fn (array|string $value) => through( is_string($value) ? $split($value) : $value, array_unique(...));
+    $unique = fn (array|string $value) => through(is_string($value) ? $split($value) : $value, array_unique(...));
 
     expect($uppercase('foo'))->toBe('FOO')
         ->and($split('foo'))->toBe(['f', 'o', 'o'])
@@ -55,7 +57,7 @@ it('returns default if nesting pipe calls', function () {
 });
 
 it('returns default if nesting pipe calls via object', function () {
-    $unique = new class {
+    $unique = new class () {
         public function __invoke(mixed $value)
         {
             return is_array($value)

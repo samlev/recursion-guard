@@ -7,7 +7,7 @@ use RecursionGuard\Data\Trace;
 
 covers(Trace::class);
 
-test('it makes new from array', function ($from, $expected, $withoutEmpty) {
+it('makes new from array', function ($from, $expected, $withoutEmpty) {
     $trace = new Trace($from);
 
     expect($trace->count())->toEqual(count($expected))
@@ -18,31 +18,7 @@ test('it makes new from array', function ($from, $expected, $withoutEmpty) {
         ->and($trace->jsonSerialize())->toEqual($expected);
 })->with('traces');
 
-test('it makes from array', function ($from, $expected, $withoutEmpty) {
-    $trace = Trace::make($from);
-
-    expect($trace->count())->toEqual(count($expected))
-        ->and($trace->frames)->toEqual($expected)
-        ->and($trace->frames())->toEqual($withoutEmpty)
-        ->and($trace->frames(true))->toEqual($expected)
-        ->and($trace->empty())->toEqual(empty($withoutEmpty))
-        ->and($trace->jsonSerialize())->toEqual($expected);
-})->with('traces');
-
-test('it makes from trace', function ($from, $expected, $withoutEmpty) {
-    $existing = new Trace($from);
-
-    $trace = Trace::make($existing);
-
-    expect($trace->count())->toEqual(count($expected))
-        ->and($trace->frames)->toEqual($expected)
-        ->and($trace->frames())->toEqual($withoutEmpty)
-        ->and($trace->frames(true))->toEqual($expected)
-        ->and($trace->empty())->toEqual(empty($withoutEmpty))
-        ->and($trace->jsonSerialize())->toEqual($expected);
-})->with('traces');
-
-test('it only allows array read access to properties', function ($offset, $exists, $value) {
+it('only allows array read access to properties', function ($offset, $exists, $value) {
     $trace = new Trace([
         ['file' => 'foo.php', 'class' => 'foo', 'function' => 'foo', 'line' => 42, 'object' => (object) []],
         [], // empty frame
@@ -72,75 +48,4 @@ test('it only allows array read access to properties', function ($offset, $exist
     'text index' => ['foo', false, null],
     'random positive index' => [random_int(3, PHP_INT_MAX), false, null],
     'random negative index' => [random_int(PHP_INT_MIN, -1), false, null],
-]);
-
-dataset('traces', [
-    'none' => [[], [], []],
-    'empty frame' => [
-        [[]],
-        [new Frame()],
-        [],
-    ],
-    'two empty frames' => [
-        [[], []],
-        [new Frame(), new Frame()],
-        [],
-    ],
-    'one frame' => [
-        [['file' => 'foo.php', 'class' => 'foo', 'function' => 'foo', 'line' => 42, 'object' => (object) []]],
-        [new Frame('foo.php', 'foo', 'foo', 42, (object) [])],
-        [new Frame('foo.php', 'foo', 'foo', 42, (object) [])],
-    ],
-    'two frames' => [
-        [
-            ['file' => 'foo.php', 'class' => 'foo', 'function' => 'foo', 'line' => 42, 'object' => (object) []],
-            ['file' => 'bing.php', 'class' => 'bang', 'function' => 'boom', 'line' => 99, 'object' => new Frame()],
-        ],
-        [
-            new Frame('foo.php', 'foo', 'foo', 42, (object) []),
-            new Frame('bing.php', 'bang', 'boom', 99, new Frame()),
-        ],
-        [
-            new Frame('foo.php', 'foo', 'foo', 42, (object) []),
-            new Frame('bing.php', 'bang', 'boom', 99, new Frame()),
-        ],
-    ],
-    'three frames' => [
-        [
-            ['file' => 'foo.php', 'function' => 'foo', 'class' => 'foo', 'line' => 42, 'object' => (object) []],
-            ['file' => 'bing.php', 'class' => 'bang', 'function' => 'boom', 'line' => 99, 'object' => new Frame()],
-            ['file' => 'whizz.php', 'line' => 24],
-        ],
-        [
-            new Frame('foo.php', 'foo', 'foo', 42, (object) []),
-            new Frame('bing.php', 'bang', 'boom', 99, new Frame()),
-            new Frame('whizz.php', line: 24),
-        ],
-        [
-            new Frame('foo.php', 'foo', 'foo', 42, (object) []),
-            new Frame('bing.php', 'bang', 'boom', 99, new Frame()),
-            new Frame('whizz.php', line: 24),
-        ],
-    ],
-    'mixed frames' => [
-        [
-            ['file' => 'foo.php', 'function' => 'foo', 'class' => 'foo', 'line' => 42, 'object' => (object) []],
-            [],
-            ['file' => 'bing.php', 'class' => 'bang', 'function' => 'boom', 'line' => 99, 'object' => new Frame()],
-            [],
-            ['file' => 'whizz.php', 'line' => 24],
-        ],
-        [
-            new Frame('foo.php', 'foo', 'foo', 42, (object) []),
-            new Frame(),
-            new Frame('bing.php', 'bang', 'boom', 99, new Frame()),
-            new Frame(),
-            new Frame('whizz.php', line: 24),
-        ],
-        [
-            new Frame('foo.php', 'foo', 'foo', 42, (object) []),
-            new Frame('bing.php', 'bang', 'boom', 99, new Frame()),
-            new Frame('whizz.php', line: 24),
-        ],
-    ],
 ]);

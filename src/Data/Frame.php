@@ -33,21 +33,6 @@ readonly class Frame implements ArrayAccess, JsonSerializable
         //
     }
 
-    /**
-     * @param FrameArray|Frame $frame
-     * @return Frame
-     */
-    public static function make(array|Frame $frame): self
-    {
-        if ($frame instanceof self) {
-            return clone $frame;
-        }
-
-        $frame = array_intersect_key($frame, array_flip(['file', 'class', 'function', 'line', 'object']));
-
-        return new self(...$frame);
-    }
-
     public function empty(): bool
     {
         return !($this->file || $this->class || $this->function || $this->line || $this->object);

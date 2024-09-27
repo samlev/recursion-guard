@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 function fib(int $position): int
 {
     return RecursionGuard\Recurser::call(

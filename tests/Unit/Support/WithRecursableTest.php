@@ -10,8 +10,7 @@ use Tests\Support\Stubs\WithRecursableStub;
 covers(WithRecursable::class);
 
 it('makes the base class', function () {
-    $recursable = Recursable::make(function () {
-    }, signature: 'foo');
+    $recursable = new Recursable(fn () => null, signature: 'foo');
 
     $class = m::mock(WithRecursableStub::class)
         ->makePartial()
@@ -33,8 +32,7 @@ it('makes the base class', function () {
 });
 
 it('should make with a recursable', function () {
-    $recursable = Recursable::make(function () {
-    }, signature: 'foo');
+    $recursable = new Recursable(fn () => null, signature: 'foo');
 
     $class = WithRecursableStub::make($recursable);
 
@@ -46,13 +44,11 @@ it('should make with a recursable', function () {
 });
 
 it('does not overwrite the recursable', function () {
-    $recursable = Recursable::make(function () {
-    }, signature: 'foo');
-    $other = Recursable::make(function () {
-    }, signature: 'bar');
+    $recursable = new Recursable(fn () => null, signature: 'foo');
+    $other = new Recursable(fn () => null, signature: 'bar');
 
     $one = WithRecursableStub::make($recursable);
-    $one->forward_withRecursable($other);
+    $one->expose_withRecursable($other);
 
     expect($one->getRecursable())
         ->toBe($recursable);
@@ -62,20 +58,19 @@ it('does not overwrite the recursable', function () {
     expect($two->getRecursable())
         ->toBeNull();
 
-    $two->forward_withRecursable($other);
+    $two->expose_withRecursable($other);
 
     expect($two->getRecursable())
         ->toBe($other);
 
-    $two->forward_withRecursable($recursable);
+    $two->expose_withRecursable($recursable);
 
     expect($two->getRecursable())
         ->toBe($other);
 });
 
-test('it makes with parts', function (array $parts, string $message, int $code, ?Throwable $previous) {
-    $recursable = Recursable::make(function () {
-    }, signature: 'foo');
+it('makes with parts', function (array $parts, string $message, int $code, ?Throwable $previous) {
+    $recursable = new Recursable(fn () => null, signature: 'foo');
 
     $class = WithRecursableStub::make($recursable, ...$parts);
 

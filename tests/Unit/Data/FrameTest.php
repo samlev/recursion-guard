@@ -7,7 +7,7 @@ use RecursionGuard\Data\RecursionContext;
 
 covers(Frame::class);
 
-test('it makes new with defaults', function ($from) {
+it('makes new with defaults', function ($from) {
     $frame = new Frame(...$from);
 
     expect($frame->file)->toBe($from['file'] ?? '')
@@ -32,44 +32,8 @@ test('it makes new with defaults', function ($from) {
     'all' => [['file' => 'foo.php', 'line' => 42, 'function' => 'foo', 'class' => 'foo', 'object' => (object) []]],
 ]);
 
-test('it makes with defaults', function ($from) {
-    $frame = Frame::make($from);
-
-    expect($frame->file)->toBe($from['file'] ?? '')
-        ->and($frame->function)->toBe($from['function'] ?? null)
-        ->and($frame->class)->toBe($from['class'] ?? null)
-        ->and($frame->line)->toBe($from['line'] ?? 0)
-        ->and($frame->object)->toBe($from['object'] ?? null)
-        ->and($frame->jsonSerialize())->toBe([
-            'file' => $from['file'] ?? '',
-            'function' => $from['function'] ?? null,
-            'class' => $from['class'] ?? null,
-            'line' => $from['line'] ?? 0,
-            'object' => $from['object'] ?? null,
-        ]);
-})->with([
-    'none' => [[]],
-    'file' => [['file' => 'foo.php']],
-    'line' => [['line' => 42]],
-    'function' => [['function' => 'foo']],
-    'class' => [['class' => 'foo']],
-    'object' => [['object' => (object) []]],
-    'all' => [['file' => 'foo.php', 'line' => 42, 'function' => 'foo', 'class' => 'foo', 'object' => (object) []]],
-    'existing frame' => [new Frame('foo.php', 'baz', 'bar', 42, (object) [])],
-    'unneccessary keys' => [['type' => '->', 'args' => []]],
-]);
-
-test('it clones frame when making from frame', function () {
-    $existing = new Frame('foo.php', 'baz', 'bar', 42, (object) []);
-
-    $frame = Frame::make($existing);
-
-    expect($frame)->toEqual($existing)
-        ->not->toBe($existing);
-});
-
-test('it marks empty frames as empty', function ($from, $empty) {
-    $frame = Frame::make($from);
+it('marks empty frames as empty', function ($from, $empty) {
+    $frame = new Frame(...$from);
 
     expect($frame->empty())->toBe($empty);
 })->with([
@@ -80,13 +44,10 @@ test('it marks empty frames as empty', function ($from, $empty) {
     'class' => [['class' => 'foo'], false],
     'object' => [['object' => (object) []], false],
     'all' => [['file' => 'foo.php', 'line' => 42, 'function' => 'foo', 'class' => 'foo', 'object' => (object) []], false],
-    'unneccessary keys' => [['type' => '->', 'args' => []], true],
     'empty values' => [['file' => '', 'line' => 0, 'function' => '', 'class' => '', 'object' => null], true],
-    'existing filled frame' => [new Frame('foo.php', 'baz', 'bar', 42, (object) []), false],
-    'existing empty frame' => [new Frame(), true],
 ]);
 
-test('it only allows array read access to properties', function ($offset, $set, $exists, $value) {
+it('only allows array read access to properties', function ($offset, $set, $exists, $value) {
     $frame = new Frame(
         'foo.php',
         'baz',

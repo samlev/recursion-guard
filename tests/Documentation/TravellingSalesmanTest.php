@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 class Location
 {
     /**
@@ -93,13 +95,13 @@ class TravellingSalesman
     }
 }
 
-test('it finds shortest route', function (Location $from, Location $to, array $expectedTrail) {
+it('finds shortest route', function (Location $from, Location $to, array $expectedTrail) {
     $travellingSalesman = new TravellingSalesman($from, $to);
 
     $trail = $travellingSalesman->route();
 
     expect(array_sum(array_column($trail, 'distance')))->toEqual(array_sum(array_column($expectedTrail, 'distance')))
-        ->and(array_column($trail, 'name'))->toEqual( array_column($expectedTrail, 'name'));
+        ->and(array_column($trail, 'name'))->toEqual(array_column($expectedTrail, 'name'));
 })->with([
     'straight' => function () {
         $a = new Location('A');

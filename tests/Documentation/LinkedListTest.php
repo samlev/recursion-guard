@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 class LinkedList
 {
     protected ?LinkedList $next = null;

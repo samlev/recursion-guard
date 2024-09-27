@@ -5,13 +5,8 @@ declare(strict_types=1);
 namespace RecursionGuard\Data;
 
 use ArrayAccess;
-use Closure;
 use JsonSerializable;
-use RecursionGuard\Exception\InvalidContextException;
 use RecursionGuard\Support\ArrayWritesForbidden;
-use ReflectionClass;
-use ReflectionException;
-use ReflectionFunction;
 
 /**
  * @phpstan-import-type TraceArray from Trace
@@ -41,78 +36,6 @@ readonly class RecursionContext implements ArrayAccess, JsonSerializable
             $this->class ? ($this->class . '@') : '',
             $this->function ?: $this->line,
         );
-    }
-
-    /**
-     * @param Trace|TraceArray $trace
-     */
-    public static function fromTrace(Trace|array $trace): self
-    {
-        $trace = Trace::make($trace)->frames();
-
-        if (empty($trace)) {
-            throw InvalidContextException::make($trace);
-        }
-
-        return new self(
-            $trace[0]->file ?: '',
-            $trace[1]->class ?? '',
-            $trace[1]->function ?? '',
-            $trace[0]->line,
-            $trace[1]->object ?? null,
-        );
-    }
-
-    /**
-     * @param callable(): mixed|array{0: object|class-string, 1: string} $callable
-     * @return self
-     * @throws ReflectionException
-     */
-    public static function fromCallable(callable|array $callable): self
-    {
-        return (match (true) {
-            is_string($callable), $callable instanceof Closure => function (string|Closure $callable) {
-                $reflector = new ReflectionFunction($callable);
-                return new self(
-                    $reflector->getFileName() ?: '',
-                    $reflector->getClosureScopeClass()?->getName() ?? '',
-                    $reflector->getName() === '{closure}'
-                        ? (string)$reflector
-                        : $reflector->getName(),
-                    $reflector->getStartLine() ?: 0,
-                    $reflector->getClosureThis(),
-                );
-            },
-            is_object($callable) && method_exists($callable, '__invoke'),
-            is_array($callable) => function (object|array $callable) {
-                [$object, $method] = (is_array($callable) ? $callable : [$callable, '__invoke']);
-                $class = new ReflectionClass($object);
-                $reflector = $class->getMethod($method);
-
-                return new self(
-                    $class->getFileName() ?: '',
-                    $class->getName(),
-                    $reflector->getName(),
-                    $reflector->getStartLine() ?: 0,
-                    is_object($object) ? $object : null,
-                );
-            },
-            default => fn (callable $callable) => throw InvalidContextException::make($callable),
-        })(
-            $callable
-        );
-    }
-
-    /**
-     * @param callable|array<int, FrameArray>|TraceArray|Trace $from
-     * @return RecursionContext
-     * @throws ReflectionException
-     */
-    public static function make(array|callable|Trace $from): self
-    {
-        return is_callable($from)
-            ? static::fromCallable($from)
-            : static::fromTrace($from);
     }
 
     /**

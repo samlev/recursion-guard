@@ -6,11 +6,12 @@ namespace RecursionGuard\Data;
 
 use ArrayAccess;
 use JsonSerializable;
+use RecursionGuard\Recurser;
 use RecursionGuard\Support\ArrayWritesForbidden;
 
 /**
  * @phpstan-import-type FrameArray from Frame
- * @phpstan-type TraceArray array<int, FrameArray|Frame>
+ * @phpstan-type TraceArray Frame[]|FrameArray[]
  *
  * @implements ArrayAccess<int, Frame>
  */
@@ -29,16 +30,7 @@ readonly class Trace implements ArrayAccess, JsonSerializable
     public function __construct(
         array $frames = [],
     ) {
-        $this->frames = array_map(Frame::make(...), $frames);
-    }
-
-    /**
-     * @param Trace|TraceArray $trace
-     * @return self
-     */
-    public static function make(Trace|array $trace): self
-    {
-        return new self($trace instanceof Trace ? $trace->frames : $trace);
+        $this->frames = array_map(Recurser::instance()->factory->makeFrame(...), $frames);
     }
 
     /**

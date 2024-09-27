@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-use RecursionGuard\Recursable;
+use RecursionGuard\Factory;
 use RecursionGuard\Recurser;
+use Tests\Support\Stubs\RecurserStub;
 
 covers(Recurser::class);
 
-test('instance creates a new instancebif one does not exist', function () {
+test('manages instances', function () {
     $instance = Recurser::instance();
 
     expect($instance)->toBeInstanceOf(Recurser::class)
@@ -19,7 +20,7 @@ test('instance creates a new instancebif one does not exist', function () {
         ->not->toBe($instance);
 });
 
-test('', function () {
+test('manages recursables', function () {
     $callable = new class () {
         public function __invoke(): void
         {
@@ -27,20 +28,18 @@ test('', function () {
         }
     };
 
-    $one = Recursable::make($callable);
-    $two = Recursable::make($callable);
+    $factory = new Factory();
 
-    $instance = new class () extends Recurser {
-        public function set(Recursable $target): void
-        {
-            $this->setValue($target);
-        }
-    };
+    $instance = new RecurserStub();
+
+    $one = $factory->makeRecursable($callable);
+    $two = $factory->makeRecursable($callable);
+
 
     expect($instance->find($one))->toBeNull()
         ->and($instance->find($two))->toBeNull();
 
-    $instance->set($one);
+    $instance->expose_setValue($one);
 
     expect($instance->find($one))->toBe($one)
         ->and($instance->find($two))->toBe($one)

@@ -7,7 +7,7 @@ use RecursionGuard\Exception\InvalidContextException;
 
 covers(InvalidContextException::class);
 
-test('it makes exception with generated message', function (mixed $from, string $message) {
+it('makes exception with generated message', function (mixed $from, string $message) {
     $exception = InvalidContextException::make($from);
 
     expect($exception)
@@ -19,7 +19,7 @@ test('it makes exception with generated message', function (mixed $from, string 
 })->with([
     'invalid array' => [['foo' => 'bar'], 'Invalid backtrace provided: {"foo":"bar"}'],
     'empty array' => [[], 'Empty backtrace provided.'],
-    'empty trace' => [Trace::make([]), 'Empty backtrace provided.'],
+    'empty trace' => [new Trace([]), 'Empty backtrace provided.'],
     'callable' => [
         function () {
             return 'foo';
@@ -29,7 +29,7 @@ test('it makes exception with generated message', function (mixed $from, string 
     'null' => [null, 'Invalid context provided.'],
 ]);
 
-test('it makes with exception parts', function (array $parts, string $message, int $code, ?Throwable $previous) {
+it('makes with exception parts', function (array $parts, string $message, int $code, ?Throwable $previous) {
     $exception = InvalidContextException::make(null, ...$parts);
 
     expect($exception)

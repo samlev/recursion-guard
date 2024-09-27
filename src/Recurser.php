@@ -34,8 +34,9 @@ class Recurser
      *
      * @return void
      */
-    final public function __construct()
-    {
+    final public function __construct(
+        public readonly Factory $factory = new Factory(),
+    ) {
         $this->cache = new WeakMap();
         $this->defaultScope = (object)[];
     }
@@ -77,7 +78,9 @@ class Recurser
         ?object $for = null,
         ?string $as = null,
     ): mixed {
-        $recursable = Recursable::make(
+        $instance = static::instance();
+
+        $recursable = $instance->factory->makeRecursable(
             $callback,
             $onRecursion,
             $for,
@@ -85,7 +88,7 @@ class Recurser
             debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 2),
         );
 
-        return static::instance()->guard($recursable);
+        return $instance->guard($recursable);
     }
 
     /**
@@ -94,7 +97,7 @@ class Recurser
      * @template TReturnType of mixed
      *
      * @param Recursable<TReturnType> $target
-     * @return TReturnType|callable(): TReturnType
+     * @return TReturnType
      */
     public function guard(Recursable $target): mixed
     {

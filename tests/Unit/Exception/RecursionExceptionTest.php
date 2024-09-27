@@ -8,9 +8,8 @@ use Tests\Support\Stubs\RecursableStub;
 
 covers(RecursionException::class);
 
-test('it makes with recursable', function () {
-    $recursable = Recursable::make(function () {
-    }, signature: 'foo');
+it('makes with recursable', function () {
+    $recursable = new Recursable(fn () => null, signature: 'foo');
     $exception = RecursionException::make($recursable);
 
     expect($exception)
@@ -19,7 +18,7 @@ test('it makes with recursable', function () {
         ->and($exception->getRecursable())->toBe($recursable);
 });
 
-test('it makes exception with generated message', function (Recursable $recursable, string $message) {
+it('makes exception with generated message', function (Recursable $recursable, string $message) {
     $exception = RecursionException::make($recursable);
 
     expect($exception)
@@ -30,24 +29,24 @@ test('it makes exception with generated message', function (Recursable $recursab
         ->and($exception->getPrevious())->toBeNull();
 })->with([
     'not started' => [
-        Recursable::make(fn () => null, signature: 'foo'),
+        new Recursable(fn () => null, signature: 'foo'),
         'Call stack for [foo] has not commenced.',
     ],
     'started' => [
-        RecursableStub::make(fn () => null, signature: 'foo')->state(
+        (new RecursableStub(fn () => null, signature: 'foo'))->state(
             started: true,
             stackDepth: 1,
         ),
         'Callback for [foo] has been called recursively.'
     ],
     'finished' => [
-        RecursableStub::make(fn () => null, signature: 'foo')->state(
+        (new RecursableStub(fn () => null, signature: 'foo'))->state(
             started: true,
         ),
         'Call stack for [foo] has completed.'
     ],
     'recursing' => [
-        RecursableStub::make(fn () => null, signature: 'foo')->state(
+        (new RecursableStub(fn () => null, signature: 'foo'))->state(
             started: true,
             stackDepth: 2,
         ),
@@ -55,9 +54,8 @@ test('it makes exception with generated message', function (Recursable $recursab
     ],
 ]);
 
-test('it makes with exception parts', function (array $parts, string $message, int $code, ?Throwable $previous) {
-    $exception = RecursionException::make(Recursable::make(function () {
-    }, signature: 'foo'), ...$parts);
+it('makes with exception parts', function (array $parts, string $message, int $code, ?Throwable $previous) {
+    $exception = RecursionException::make(new Recursable(fn () => null, signature: 'foo'), ...$parts);
 
     expect($exception)
         ->toBeInstanceOf(RecursionException::class)

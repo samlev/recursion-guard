@@ -6,10 +6,12 @@ namespace Tests\Support\Stubs;
 
 use RecursionGuard\Recursable;
 use RecursionGuard\Support\WithRecursable;
+use Tests\Support\ExposesProtectedMethods;
 
 class WithRecursableStub
 {
     use WithRecursable;
+    use ExposesProtectedMethods;
 
     public function __construct(
         public ?string $message = 'default',
@@ -17,11 +19,6 @@ class WithRecursableStub
         public ?\Throwable $previous = null
     ) {
         //
-    }
-
-    public function forward_withRecursable(Recursable $recursable): static
-    {
-        return $this->withRecursable($recursable);
     }
 
     protected static function makeMessage(Recursable $recursable): string
