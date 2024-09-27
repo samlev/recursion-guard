@@ -2,7 +2,7 @@
 A simple, zero dependency mechanism for preventing infinite recursion in PHP.
 
 <p align="center">
-<a href="https://github.com/samlev/recursion-guard/actions"><img src="https://github.com/samlev/recursion-guard/workflows/tests/badge.svg" alt="Build Status"></a>
+<a href="https://github.com/samlev/recursion-guard/actions"><img src="https://github.com/samlev/recursion-guard/actions/workflows/tests.yml/badge.svg" alt="Build Status"></a>
 <a href="https://packagist.org/packages/samlev/recursion-guard"><img src="https://img.shields.io/packagist/dt/samlev/recursion-guard" alt="Total Downloads"></a>
 <a href="https://packagist.org/packages/samlev/recursion-guard"><img src="https://img.shields.io/packagist/v/samlev/recursion-guard" alt="Latest Stable Version"></a>
 <a href="https://packagist.org/packages/samlev/recursion-guard"><img src="https://img.shields.io/packagist/l/samlev/recursion-guard" alt="License"></a>
