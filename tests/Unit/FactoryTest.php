@@ -10,9 +10,6 @@ use RecursionGuard\Factory;
 use Tests\Support\Stubs\FactoryStub;
 
 covers(Factory::class);
-covers(Frame::class);
-covers(RecursionContext::class);
-covers(Trace::class);
 
 it('makes frame', function ($from) {
     $factory = new Factory();
@@ -37,15 +34,15 @@ it('makes frame', function ($from) {
     'line' => [['line' => 42]],
     'function' => [['function' => 'foo']],
     'class' => [['class' => 'foo']],
-    'object' => [['object' => (object) []]],
-    'all' => [['file' => 'foo.php', 'line' => 42, 'function' => 'foo', 'class' => 'foo', 'object' => (object) []]],
-    'existing frame' => [new Frame('foo.php', 'baz', 'bar', 42, (object) [])],
+    'object' => [['object' => (object)[]]],
+    'all' => [['file' => 'foo.php', 'line' => 42, 'function' => 'foo', 'class' => 'foo', 'object' => (object)[]]],
+    'existing frame' => [new Frame('foo.php', 'baz', 'bar', 42, (object)[])],
     'unneccessary keys' => [['type' => '->', 'args' => []]],
 ]);
 
 it('clones frame when making frame from existing frame', function () {
     $factory = new Factory();
-    $existing = new Frame('foo.php', 'baz', 'bar', 42, (object) []);
+    $existing = new Frame('foo.php', 'baz', 'bar', 42, (object)[]);
 
     $frame = $factory->makeFrame($existing);
 
@@ -79,8 +76,7 @@ it('makes trace from trace', function ($from, $expected, $withoutEmpty) {
         ->and($trace->frames())->toEqual($withoutEmpty)
         ->and($trace->frames(true))->toEqual($expected)
         ->and($trace->empty())->toEqual(empty($withoutEmpty))
-        ->and($trace->jsonSerialize())->toEqual($expected);
-    ;
+        ->and($trace->jsonSerialize())->toEqual($expected);;
 })->with('traces');
 
 it('should make context from valid trace', function ($from, $expected) {
@@ -99,7 +95,7 @@ it('should make context from valid trace', function ($from, $expected) {
         ->and($context->jsonSerialize())->toEqual($expected);
 })->with([
     'single array' => [
-        [['file' => 'foo.php', 'line' => 42, 'function' => 'bar', 'class' => 'baz', 'object' => (object) []]],
+        [['file' => 'foo.php', 'line' => 42, 'function' => 'bar', 'class' => 'baz', 'object' => (object)[]]],
         [
             'file' => 'foo.php',
             'line' => 42,
@@ -111,15 +107,15 @@ it('should make context from valid trace', function ($from, $expected) {
     ],
     'double entry trace' => [
         [
-            ['file' => 'foo.php', 'line' => 42, 'function' => 'bar', 'class' => 'baz', 'object' => (object) []],
-            ['file' => 'foo.php', 'line' => 42, 'function' => 'bar', 'class' => 'baz', 'object' => (object) []],
+            ['file' => 'foo.php', 'line' => 42, 'function' => 'bar', 'class' => 'baz', 'object' => (object)[]],
+            ['file' => 'foo.php', 'line' => 42, 'function' => 'bar', 'class' => 'baz', 'object' => (object)[]],
         ],
         [
             'file' => 'foo.php',
             'line' => 42,
             'function' => 'bar',
             'class' => 'baz',
-            'object' => (object) [],
+            'object' => (object)[],
             'signature' => 'foo.php:baz@bar',
         ],
     ],
@@ -190,13 +186,13 @@ it('should make context from valid trace', function ($from, $expected) {
         ],
     ],
     'file and object' => [
-        [['file' => 'foo.php'], ['object' => (object) []]],
+        [['file' => 'foo.php'], ['object' => (object)[]]],
         [
             'file' => 'foo.php',
             'line' => 0,
             'function' => '',
             'class' => '',
-            'object' => (object) [],
+            'object' => (object)[],
             'signature' => 'foo.php:0',
         ],
     ],
@@ -228,17 +224,21 @@ it('should make context from functions', function (callable $from) {
         ->and($context->class)->toBe($reflector->getClosureScopeClass()?->getName() ?: '')
         ->and($context->line)->toBe($reflector->getStartLine() ?: 0)
         ->and($context->object)->toEqual($reflector->getClosureThis())
-        ->and($context->signature())->toBe(sprintf(
-            '%s:%s',
-            $reflector->getFileName(),
-            ($reflector->getClosureScopeClass() ? $reflector->getClosureScopeClass()->getName() . '@' : '')
-            . ($name ?: $reflector->getStartLine() ?: 0),
-        ));
+        ->and($context->signature())->toBe(
+            sprintf(
+                '%s:%s',
+                $reflector->getFileName(),
+                ($reflector->getClosureScopeClass() ? $reflector->getClosureScopeClass()->getName() . '@' : '')
+                . ($name ?: $reflector->getStartLine() ?: 0),
+            )
+        );
 })->with([
-    'short closure' => [fn () => 'foo'],
-    'long closure' => [function () {
-        return'foo';
-    }],
+    'short closure' => [fn() => 'foo'],
+    'long closure' => [
+        function () {
+            return 'foo';
+        }
+    ],
     'callable string' => ['rand'],
     'first class callable' => [rand(...)],
 ]);
@@ -267,22 +267,29 @@ it('should make context from callable array', function (array $from) {
         ->and($context->class)->toBe($class->getName())
         ->and($context->line)->toBe($method->getStartLine() ?: 0)
         ->and($context->object)->toEqual(is_object($from[0]) ? $from[0] : null)
-        ->and($context->signature())->toBe(sprintf(
-            '%s:%s@%s',
-            $class->getFileName(),
-            $class->getName(),
-            $method->getName(),
-        ));
+        ->and($context->signature())->toBe(
+            sprintf(
+                '%s:%s@%s',
+                $class->getFileName(),
+                $class->getName(),
+                $method->getName(),
+            )
+        );
 })->with([
     'class string' => [[DateTime::class, 'createFromFormat']],
     'object method' => [[new \DateTime(), 'format']],
     'object static method' => [[new \DateTime(), 'createFromFormat']],
-    'invokeable class' => [[new class () {
-        public function __invoke(): void
-        {
-            //
-        }
-    }, '__invoke']],
+    'invokeable class' => [
+        [
+            new class () {
+                public function __invoke(): void
+                {
+                    //
+                }
+            },
+            '__invoke'
+        ]
+    ],
 ]);
 
 it('should throw an exception when trying to make context from invalid array', function ($from) {
@@ -320,12 +327,14 @@ it('should make context from invokable object', function () {
         ->and($context->function)->toBe('__invoke')
         ->and($context->class)->toBe($class->getName())
         ->and($context->object)->toEqual($from)
-        ->and($context->signature())->toBe(sprintf(
-            '%s:%s@%s',
-            __FILE__,
-            $class->getName(),
-            '__invoke',
-        ));
+        ->and($context->signature())->toBe(
+            sprintf(
+                '%s:%s@%s',
+                __FILE__,
+                $class->getName(),
+                '__invoke',
+            )
+        );
 });
 
 it('should throw an exception when trying to make context from non-invokable object', function () {
@@ -345,10 +354,12 @@ it('uses the correct context make method', function ($closure, $trace, $expected
 
     if ($expected === 'trace') {
         $frames = array_map(function ($frame) {
-            $parts = array_filter(array_intersect_key(
-                $frame,
-                array_flip(['file', 'class', 'function', 'line', 'object']),
-            ));
+            $parts = array_filter(
+                array_intersect_key(
+                    $frame,
+                    array_flip(['file', 'class', 'function', 'line', 'object']),
+                )
+            );
 
             return new Frame(...$parts);
         }, $trace);
@@ -374,15 +385,15 @@ it('uses the correct context make method', function ($closure, $trace, $expected
 
     $factory->makeContext($closure, $trace);
 })->with([
-    'array of empty arrays' => [fn () => 'foo', [[], []], 'trace', 'makeContextFromTrace'],
-    'single array' => [fn () => 'foo', [['file' => '']], 'trace', 'makeContextFromTrace'],
+    'array of empty arrays' => [fn() => 'foo', [[], []], 'trace', 'makeContextFromTrace'],
+    'single array' => [fn() => 'foo', [['file' => '']], 'trace', 'makeContextFromTrace'],
     'backtrace array' => [
-        fn () => 'foo',
-        [['file' => 'foo.php', 'line' => 1, 'function' => 'bar', 'class' => 'baz', 'object' => (object) []]],
+        fn() => 'foo',
+        [['file' => 'foo.php', 'line' => 1, 'function' => 'bar', 'class' => 'baz', 'object' => (object)[]]],
         'trace',
         'makeContextFromTrace'
     ],
-    'short closure' => [fn () => 'foo', [], 'closure', 'makeContextFromCallable'],
+    'short closure' => [fn() => 'foo', [], 'closure', 'makeContextFromCallable'],
     'long closure' => [
         function () {
             return 'foo';
@@ -395,12 +406,17 @@ it('uses the correct context make method', function ($closure, $trace, $expected
     'first class callable' => [rand(...), [], 'closure', 'makeContextFromCallable'],
     'static callable array' => [[DateTime::class, 'createFromFormat'], [], 'closure', 'makeContextFromCallable'],
     'instance callable array' => [[new DateTime(), 'format'], [], 'closure', 'makeContextFromCallable'],
-    'invokable class' => [new class () {
-        public function __invoke(): void
-        {
-            //
-        }
-    }, [], 'closure', 'makeContextFromCallable'],
+    'invokable class' => [
+        new class () {
+            public function __invoke(): void
+            {
+                //
+            }
+        },
+        [],
+        'closure',
+        'makeContextFromCallable'
+    ],
 ]);
 
 it('uses the correct context callable make method', function ($from, $method) {
@@ -416,7 +432,7 @@ it('uses the correct context callable make method', function ($from, $method) {
 
     $factory->makeContextFromCallable($from);
 })->with([
-    'short closure' => [fn () => 'foo', 'makeContextFromFunction'],
+    'short closure' => [fn() => 'foo', 'makeContextFromFunction'],
     'long closure' => [
         function () {
             return 'foo';
@@ -427,12 +443,15 @@ it('uses the correct context callable make method', function ($from, $method) {
     'first class callable' => [rand(...), 'makeContextFromFunction'],
     'static callable array' => [[DateTime::class, 'createFromFormat'], 'makeContextFromCallableArray'],
     'instance callable array' => [[new DateTime(), 'format'], 'makeContextFromCallableArray'],
-    'invokable class' => [new class () {
-        public function __invoke(): void
-        {
-            //
-        }
-    }, 'makeContextFromObject'],
+    'invokable class' => [
+        new class () {
+            public function __invoke(): void
+            {
+                //
+            }
+        },
+        'makeContextFromObject'
+    ],
 ]);
 
 it('makes a recursable signature from a backtrace', function ($trace, $signature) {
@@ -440,7 +459,7 @@ it('makes a recursable signature from a backtrace', function ($trace, $signature
     $factory = new FactoryStub();
     $factory->attach($observer);
 
-    $callback = fn () => null;
+    $callback = fn() => null;
 
     $observer->expects($this->once())
         ->method('makeContext')
@@ -473,7 +492,7 @@ it('overrides parts when making recursable', function () {
             return 'foo';
         }
     };
-    $object = (object) [];
+    $object = (object)[];
 
     $one = $factory->makeRecursable($callable);
     $two = $factory->makeRecursable($callable, object: $object);
