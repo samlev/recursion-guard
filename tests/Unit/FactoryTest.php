@@ -76,7 +76,8 @@ it('makes trace from trace', function ($from, $expected, $withoutEmpty) {
         ->and($trace->frames())->toEqual($withoutEmpty)
         ->and($trace->frames(true))->toEqual($expected)
         ->and($trace->empty())->toEqual(empty($withoutEmpty))
-        ->and($trace->jsonSerialize())->toEqual($expected);;
+        ->and($trace->jsonSerialize())->toEqual($expected);
+    ;
 })->with('traces');
 
 it('should make context from valid trace', function ($from, $expected) {
@@ -233,7 +234,7 @@ it('should make context from functions', function (callable $from) {
             )
         );
 })->with([
-    'short closure' => [fn() => 'foo'],
+    'short closure' => [fn () => 'foo'],
     'long closure' => [
         function () {
             return 'foo';
@@ -385,15 +386,15 @@ it('uses the correct context make method', function ($closure, $trace, $expected
 
     $factory->makeContext($closure, $trace);
 })->with([
-    'array of empty arrays' => [fn() => 'foo', [[], []], 'trace', 'makeContextFromTrace'],
-    'single array' => [fn() => 'foo', [['file' => '']], 'trace', 'makeContextFromTrace'],
+    'array of empty arrays' => [fn () => 'foo', [[], []], 'trace', 'makeContextFromTrace'],
+    'single array' => [fn () => 'foo', [['file' => '']], 'trace', 'makeContextFromTrace'],
     'backtrace array' => [
-        fn() => 'foo',
+        fn () => 'foo',
         [['file' => 'foo.php', 'line' => 1, 'function' => 'bar', 'class' => 'baz', 'object' => (object)[]]],
         'trace',
         'makeContextFromTrace'
     ],
-    'short closure' => [fn() => 'foo', [], 'closure', 'makeContextFromCallable'],
+    'short closure' => [fn () => 'foo', [], 'closure', 'makeContextFromCallable'],
     'long closure' => [
         function () {
             return 'foo';
@@ -432,7 +433,7 @@ it('uses the correct context callable make method', function ($from, $method) {
 
     $factory->makeContextFromCallable($from);
 })->with([
-    'short closure' => [fn() => 'foo', 'makeContextFromFunction'],
+    'short closure' => [fn () => 'foo', 'makeContextFromFunction'],
     'long closure' => [
         function () {
             return 'foo';
@@ -459,7 +460,7 @@ it('makes a recursable signature from a backtrace', function ($trace, $signature
     $factory = new FactoryStub();
     $factory->attach($observer);
 
-    $callback = fn() => null;
+    $callback = fn () => null;
 
     $observer->expects($this->once())
         ->method('makeContext')

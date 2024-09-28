@@ -70,9 +70,9 @@ it('only allows array read access to properties', function ($offset, $set, $exis
 
     $message = Frame::class . ' is read-only';
 
-    expect(fn() => $frame->offsetSet($offset, $set))->toThrow(\RuntimeException::class, $message)
+    expect(fn () => $frame->offsetSet($offset, $set))->toThrow(\RuntimeException::class, $message)
         ->and($frame->offsetGet($offset))->toEqual($value)
-        ->and(fn() => $frame->offsetUnset($offset))->toThrow(\RuntimeException::class, $message)
+        ->and(fn () => $frame->offsetUnset($offset))->toThrow(\RuntimeException::class, $message)
         ->and($frame->offsetExists($offset))->toEqual($exists)
         ->and(function () use (&$frame, $offset, $set) {
             $frame[$offset] = $set;
@@ -96,4 +96,3 @@ it('only allows array read access to properties', function ($offset, $set, $exis
     'last index' => [5, 6, false, null],
     'random index' => [random_int(PHP_INT_MIN, PHP_INT_MAX), 42, false, null],
 ]);
-
