@@ -10,9 +10,6 @@ use RecursionGuard\Factory;
 use Tests\Support\Stubs\FactoryStub;
 
 covers(Factory::class);
-covers(Frame::class);
-covers(RecursionContext::class);
-covers(Trace::class);
 
 it('makes frame', function ($from) {
     $factory = new Factory();

@@ -7,20 +7,42 @@ use RecursionGuard\Data\RecursionContext;
 
 covers(Frame::class);
 
+it('makes a new frame that is empty', function () {
+    $frame = new Frame();
+
+    expect($frame->empty())->toBeTrue()
+        ->and($frame->file)->toBe('')
+        ->and($frame['file'])->toBe('')
+        ->and($frame->class)->toBeNull()
+        ->and($frame['class'])->toBeNull()
+        ->and($frame->function)->toBeNull()
+        ->and($frame['function'])->toBeNull()
+        ->and($frame->line)->toBe(0)
+        ->and($frame['line'])->toBe(0)
+        ->and($frame->class)->toBeNull()
+        ->and($frame['class'])->toBeNull();
+});
+
 it('makes new with defaults', function ($from, $empty) {
     $frame = new Frame(...$from);
 
-    expect($frame->file)->toBe($from['file'] ?? '')
-        ->and($frame->function)->toBe($from['function'] ?? null)
-        ->and($frame->class)->toBe($from['class'] ?? null)
-        ->and($frame->line)->toBe($from['line'] ?? 0)
-        ->and($frame->object)->toBe($from['object'] ?? null)
+    $file = $from['file'] ?? '';
+    $class = $from['class'] ?? null;
+    $function = $from['function'] ?? null;
+    $line = $from['line'] ?? 0;
+    $object = $from['object'] ?? null;
+
+    expect($frame->file)->toBe($file)
+        ->and($frame->function)->toBe($function)
+        ->and($frame->class)->toBe($class)
+        ->and($frame->line)->toBe($line)
+        ->and($frame->object)->toBe($object)
         ->and($frame->jsonSerialize())->toBe([
-            'file' => $from['file'] ?? '',
-            'function' => $from['function'] ?? null,
-            'class' => $from['class'] ?? null,
-            'line' => $from['line'] ?? 0,
-            'object' => $from['object'] ?? null,
+            'file' => $file,
+            'function' => $function,
+            'class' => $class,
+            'line' => $line,
+            'object' => $object,
         ])
         ->and($frame->empty())->toBe($empty);
 })->with([
@@ -71,3 +93,4 @@ it('only allows array read access to properties', function ($offset, $set, $exis
     'last index' => [5, 6, false, null],
     'random index' => [random_int(PHP_INT_MIN, PHP_INT_MAX), 42, false, null],
 ]);
+
