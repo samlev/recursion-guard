@@ -34,3 +34,57 @@ bozo_repeat(); // 'bozo(88) : bozo(88)'
 
 See [the documentation](docs/index.md) for more explanation, examples, and advanced usage.
 
+## Testing
+You can run individual test suites using composer commands:
+```bash
+# Static Analysis with phpstan
+composer test:stan
+
+# Architecture tests
+composer test:arch
+# Documentation tests (tests that cover any code in the documentation)
+composer test:docs
+# Feature/integration tests
+composer test:feat
+# Unit tests
+composer test:unit
+
+# Code coverage
+composer test:coverage
+
+# Mutation tests
+composer test:mutate
+```
+
+Or you can run grouped tests:
+```bash
+# All code style checks
+composer lint
+
+# Static analysis and main test suites
+composer test
+```
+
+### Code Style
+
+The code style for this project adheres to PSR-12, and can be checked using the following
+composer commands:
+```bash
+# Code Style checks with phpcs
+composer lint:phpcs
+# Code Style checks with PHP-CS-Fixer
+composer lint:phpcsfixer
+
+# Run all code style checks
+composer lint
+```
+
+You can attempt to automatically fix a number of code style issues with the  command:
+```bash
+composer lint:fix
+```
+
+## Contributing
+Contributions via PR are welcome, either as complete changes (including tests), or as
+failing test cases.
+
