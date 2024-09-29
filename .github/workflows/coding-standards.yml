@@ -2,6 +2,15 @@ name: Coding Standards
 
 on:
   push:
+    branches:
+      - 'main'
+    files:
+      - 'src/**.php'
+      - 'tests/**.php'
+      - 'phpcs.xml.dist'
+      - 'phpstan.dist.neon'
+      - '.php-cs-fixer.dist.php'
+      - '.github/workfliws/coding-standards.yml'
   pull_request:
 
 jobs:
@@ -11,14 +20,20 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [8.2, 8.3]
-        command: [
-          'php-cs-fixer check -v',
-          'phpcs src/',
-          'phpstan analyse',
-        ]
+        php: [8.2, 8.3, 8.4]
+        linter: ['php-cs-fixer', 'phpcs', 'phpstan']
+        exclude:
+          - php: 8.4
+            linter: 'php-cs-fixer'
+        include:
+          - linter: 'php-cs-fixer'
+            params: 'check -v'
+          - linter: 'phpcs'
+            params: 'src/'
+          - linter: 'phpstan'
+            params: 'analyse'
 
-    name: Run ${{ matrix.command }} - PHP ${{ matrix.php }}
+    name: Run ${{ matrix.linter }} - PHP ${{ matrix.php }}
 
     steps:
       - name: Checkout code
@@ -28,12 +43,8 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: dom, curl, libxml, mbstring, zip
           coverage: none
-
-      - name: Install dependencies
-        run: |
-          composer install --prefer-dist --no-interaction --no-progress
+          tools: ${{ matrix.linter }}
 
       - name: Lint code
-        run: vendor/bin/${{ matrix.command }}
+        run: ${{ matrix.linter }} ${{ matrix.params }}

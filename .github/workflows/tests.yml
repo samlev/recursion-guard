@@ -7,6 +7,8 @@ on:
     paths:
       - "src/**.php"
       - "tests/**.php"
+      - "phpunit.xml"
+      - ".github/workfliws/tests.yml"
   pull_request:
 
 jobs:
@@ -16,7 +18,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [8.2, 8.3]
+        php: [8.2, 8.3, 8.4]
         suite: ['Architecture', 'Documentation', 'Feature', 'Unit']
 
     name:  PHP ${{ matrix.php }} - ${{ matrix.suite }} Tests
@@ -29,11 +31,8 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: dom, curl, libxml, mbstring, zip
           coverage: none
-
-      - name: Install dependencies
-        run: composer install --prefer-dist --no-interaction --no-progress
+          tools: pest
 
       - name: Test code
-        run: vendor/bin/pest --testsuite ${{ matrix.suite }} --parallel
+        run: pest --testsuite ${{ matrix.suite }} --parallel

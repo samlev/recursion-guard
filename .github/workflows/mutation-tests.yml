@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: [8.2, 8.3]
+        php: [8.2, 8.3, 8.5]
 
     name: Mutation Test PHP ${{ matrix.php }}
 
@@ -25,11 +25,8 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: dom, curl, libxml, mbstring, zip
           coverage: xdebug
-
-      - name: Install dependencies
-        run: composer install --prefer-dist --no-interaction --no-progress
+          tools: pest
 
       - name: Test code
-        run: vendor/bin/pest --mutate --parallel
+        run: pest --mutate --parallel
