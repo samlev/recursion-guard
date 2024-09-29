@@ -34,7 +34,10 @@
     "autoload-dev": {
         "psr-4": {
             "Tests\\": "tests/"
-        }
+        },
+        "files" : [
+            "src/helpers.php"
+        ]
     },
     "scripts": {
         "lint:phpcsfixer": "php-cs-fixer check",
