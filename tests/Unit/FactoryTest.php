@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use RecursionGuard\Data\Frame;
-use RecursionGuard\Data\RecursionContext;
 use RecursionGuard\Data\Trace;
 use RecursionGuard\Exception\InvalidContextException;
 use RecursionGuard\Factory;

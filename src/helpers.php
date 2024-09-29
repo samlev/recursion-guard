@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace RecursionGuard;
 
 if (! function_exists('array_only')) {
