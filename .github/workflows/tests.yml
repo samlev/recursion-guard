@@ -33,7 +33,9 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           coverage: none
-          tools: 'pestphp/pest'
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Test code
-        run: pest --testsuite ${{ matrix.suite }} --parallel
+        run: vendor/bin/pest --testsuite ${{ matrix.suite }} --parallel

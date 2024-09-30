@@ -27,7 +27,9 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           coverage: xdebug
-          tools: 'pestphp/pest'
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Test code
-        run: pest --mutate --parallel
+        run: vendor/bin/pest --mutate --parallel
