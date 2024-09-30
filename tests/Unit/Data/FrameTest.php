@@ -13,51 +13,96 @@ it('makes a new frame that is empty', function () {
     expect($frame->empty())->toBeTrue()
         ->and($frame->file)->toBe('')
         ->and($frame['file'])->toBe('')
-        ->and($frame->class)->toBeNull()
-        ->and($frame['class'])->toBeNull()
-        ->and($frame->function)->toBeNull()
-        ->and($frame['function'])->toBeNull()
+        ->and($frame->class)->toBe('')
+        ->and($frame['class'])->toBe('')
+        ->and($frame->function)->toBe('')
+        ->and($frame['function'])->toBe('')
         ->and($frame->line)->toBe(0)
         ->and($frame['line'])->toBe(0)
-        ->and($frame->class)->toBeNull()
-        ->and($frame['class'])->toBeNull();
+        ->and($frame->object)->toBeNull()
+        ->and($frame['object'])->toBeNull();
 });
 
-it('makes new with defaults', function ($from, $empty) {
+it('creates new with defaults', function ($from, $empty) {
+    // Grab only the keys we want to test
+    $from = array_intersect_key($from, array_flip(['file', 'class', 'function', 'line', 'object']));
+
     $frame = new Frame(...$from);
 
     $file = $from['file'] ?? '';
-    $class = $from['class'] ?? null;
-    $function = $from['function'] ?? null;
+    $class = $from['class'] ?? '';
+    $function = $from['function'] ?? '';
     $line = $from['line'] ?? 0;
     $object = $from['object'] ?? null;
 
     expect($frame->file)->toBe($file)
-        ->and($frame->function)->toBe($function)
+        ->and($frame['file'])->toBe($file)
         ->and($frame->class)->toBe($class)
+        ->and($frame['class'])->toBe($class)
+        ->and($frame->function)->toBe($function)
+        ->and($frame['function'])->toBe($function)
         ->and($frame->line)->toBe($line)
+        ->and($frame['line'])->toBe($line)
         ->and($frame->object)->toBe($object)
+        ->and($frame['object'])->toBe($object)
         ->and($frame->jsonSerialize())->toBe([
             'file' => $file,
-            'function' => $function,
             'class' => $class,
+            'function' => $function,
             'line' => $line,
             'object' => $object,
         ])
         ->and($frame->empty())->toBe($empty);
-})->with([
-    'none' => [[], true],
-    'file' => [['file' => 'foo.php'], false],
-    'line' => [['line' => 42], false],
-    'function' => [['function' => 'foo'], false],
-    'class' => [['class' => 'foo'], false],
-    'object' => [['object' => (object)[]], false],
-    'all' => [
-        ['file' => 'foo.php', 'line' => 42, 'function' => 'foo', 'class' => 'foo', 'object' => (object)[]],
-        false
-    ],
-    'empty values' => [['file' => '', 'line' => 0, 'function' => '', 'class' => '', 'object' => null], true],
-]);
+})->with('frames');
+
+it('makes with defaults', function ($from, $empty) {
+    $frame = Frame::make($from);
+
+    $file = $from['file'] ?? '';
+    $class = $from['class'] ?? '';
+    $function = $from['function'] ?? '';
+    $line = $from['line'] ?? 0;
+    $object = $from['object'] ?? null;
+
+    expect($frame->file)->toBe($file)
+        ->and($frame['file'])->toBe($file)
+        ->and($frame->class)->toBe($class)
+        ->and($frame['class'])->toBe($class)
+        ->and($frame->function)->toBe($function)
+        ->and($frame['function'])->toBe($function)
+        ->and($frame->line)->toBe($line)
+        ->and($frame['line'])->toBe($line)
+        ->and($frame->object)->toBe($object)
+        ->and($frame['object'])->toBe($object)
+        ->and($frame->jsonSerialize())->toBe([
+            'file' => $file,
+            'class' => $class,
+            'function' => $function,
+            'line' => $line,
+            'object' => $object,
+        ])
+        ->and($frame->empty())->toBe($empty);
+})->with('frames');
+
+it('clones frame when making from existing frame', function ($from, $empty) {
+    $frame = Frame::make($from);
+
+    expect($frame)->not->toBe($from)
+        ->and($frame)->toEqual($from)
+        ->and($frame->file)->toBe($from->file)
+        ->and($frame['file'])->toBe($from['file'])
+        ->and($frame->function)->toBe($from->function)
+        ->and($frame['function'])->toBe($from['function'])
+        ->and($frame->class)->toBe($from->class)
+        ->and($frame['class'])->toBe($from['class'])
+        ->and($frame->line)->toBe($from->line)
+        ->and($frame['line'])->toBe($from['line'])
+        ->and($frame->object)->toBe($from->object)
+        ->and($frame['object'])->toBe($from['object'])
+        ->and($frame->jsonSerialize())->toBe($from->jsonSerialize())
+        ->and($frame->empty())->toBe($empty)
+        ->and($frame->empty())->toBe($from->empty());
+})->with('frame objects');
 
 it('only allows array read access to properties', function ($offset, $set, $exists, $value) {
     $frame = new Frame(

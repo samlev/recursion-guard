@@ -19,19 +19,31 @@ use ReflectionFunction;
  */
 class Factory
 {
+    /** @var class-string<Recursable<mixed>>  */
+    protected string $recursableClass;
+    /** @var class-string<RecursionContext>  */
+    protected string $contextClass;
+    /** @var class-string<Trace>  */
+    protected string $traceClass;
+    /** @var class-string<Frame>  */
+    protected string $frameClass;
+
     /**
-     * @param class-string<Recursable<mixed>> $recursableClass
-     * @param class-string<RecursionContext> $contextClass
-     * @param class-string<Trace> $traceClass
-     * @param class-string<Frame> $frameClass
+     * @param ?class-string<Recursable<mixed>> $recursableClass
+     * @param ?class-string<RecursionContext> $contextClass
+     * @param ?class-string<Trace> $traceClass
+     * @param ?class-string<Frame> $frameClass
      */
-    public function __construct(
-        protected string $recursableClass = Recursable::class,
-        protected string $contextClass = RecursionContext::class,
-        protected string $traceClass = Trace::class,
-        protected string $frameClass = Frame::class,
+    final public function __construct(
+        ?string $recursableClass = null,
+        ?string $contextClass = null,
+        ?string $traceClass = null,
+        ?string $frameClass = null,
     ) {
-        //
+        $this->recursableClass = $recursableClass ?: Recursable::class;
+        $this->contextClass = $contextClass ?: RecursionContext::class;
+        $this->traceClass = $traceClass ?: Trace::class;
+        $this->frameClass = $frameClass ?: Frame::class;
     }
 
     /**
@@ -55,20 +67,22 @@ class Factory
         $recursable = new $this->recursableClass(
             $callback,
             $onRecursion,
-            $signature ?: $context->signature()
+            $signature ?: $context->signature,
         );
 
         return $recursable->forObject($object ?? $context->object);
     }
 
     /**
-     * @param Trace|Frame[]|FrameArray[] $backTrace
+     * @param Trace|Frame[]|FrameArray[] $trace
      */
-    public function makeContext(callable $callback, Trace|array $backTrace = []): RecursionContext
+    public function makeContext(callable $callback, Trace|array $trace = []): RecursionContext
     {
-        return $backTrace
-            ? $this->makeContextFromTrace($this->makeTrace($backTrace))
-            : $this->makeContextFromCallable($callback);
+        $trace = $this->makeTrace($trace);
+
+        return $trace->empty()
+            ? $this->makeContextFromCallable($callback)
+            : $this->makeContextFromTrace($trace);
     }
 
     public function makeContextFromTrace(Trace $trace): RecursionContext
@@ -80,13 +94,15 @@ class Factory
         $caller = $trace->frames()[0];
         $called = $trace->frames()[1] ?? null;
 
-        return new $this->contextClass(...array_filter([
+        $context = new $this->contextClass(...array_filter([
             'file' => $caller->file,
             'class' => $called?->class,
             'function' => $called?->function,
             'line' => $caller->line,
             'object' => $called?->object,
         ]));
+
+        return $context;
     }
 
     public function makeContextFromCallable(callable $callable): RecursionContext
@@ -96,20 +112,14 @@ class Factory
         } elseif (is_array($callable)) {
             /** @var CallableArray $callable */
             return $this->makeContextFromCallableArray($callable);
-        } elseif (is_object($callable)) {
+        } else {
             /** @var callable&object $callable */
             return $this->makeContextFromObject($callable);
         }
-
-        throw InvalidContextException::make($callable);
     }
 
     public function makeContextFromFunction(Closure|string $callable): RecursionContext
     {
-        if (!is_callable($callable)) {
-            throw InvalidContextException::make($callable);
-        }
-
         try {
             $reflector = new ReflectionFunction($callable);
 
@@ -133,20 +143,16 @@ class Factory
             throw InvalidContextException::make($callable);
         }
 
-        try {
-            $class = new ReflectionClass($callable);
-            $method = $class->getMethod('__invoke');
+        $class = new ReflectionClass($callable);
+        $method = $class->getMethod('__invoke');
 
-            return new $this->contextClass(
-                $class->getFileName() ?: '',
-                $class->getName(),
-                $method->getName(),
-                $method->getStartLine() ?: 0,
-                $callable,
-            );
-        } catch (ReflectionException $e) {
-            throw InvalidContextException::make($callable, previous: $e);
-        }
+        return new $this->contextClass(
+            $class->getFileName() ?: '',
+            $class->getName(),
+            $method->getName(),
+            $method->getStartLine() ?: 0,
+            $callable,
+        );
     }
 
     /**
@@ -158,21 +164,17 @@ class Factory
             throw InvalidContextException::make($callable);
         }
 
-        try {
-            $class = new ReflectionClass($callable[0]);
+        $class = new ReflectionClass($callable[0]);
 
-            $method = $class->getMethod($callable[1]);
+        $method = $class->getMethod($callable[1]);
 
-            return new $this->contextClass(
-                $class->getFileName() ?: '',
-                $class->getName(),
-                $method->getName(),
-                $method->getStartLine() ?: 0,
-                is_object($callable[0]) ? $callable[0] : null,
-            );
-        } catch (ReflectionException $e) {
-            throw InvalidContextException::make($callable, previous: $e);
-        }
+        return new $this->contextClass(
+            $class->getFileName() ?: '',
+            $class->getName(),
+            $method->getName(),
+            $method->getStartLine() ?: 0,
+            is_object($callable[0]) ? $callable[0] : null,
+        );
     }
 
     /**
@@ -180,25 +182,15 @@ class Factory
      */
     public function makeTrace(array|Trace $trace): Trace
     {
-        return new $this->traceClass(
-            array_map($this->makeFrame(...), $trace instanceof Trace ? $trace->frames(true) : $trace)
-        );
+        return $this->traceClass::make($trace);
     }
 
     /**
-     * @param array<string, mixed>|Frame $frame
+     * @param array{'file'?: string,'class'?: string,'function'?: string,'line'?: int,'object'?: ?object}|Frame $frame
+     * @return Frame
      */
     public function makeFrame(array|Frame $frame): Frame
     {
-        if ($frame instanceof Frame) {
-            return new $this->frameClass(...$frame->jsonSerialize());
-        }
-
-        return new $this->frameClass(
-            ...array_intersect_key(
-                $frame,
-                array_flip(['file', 'class', 'function', 'line', 'object'])
-            )
-        );
+        return $this->frameClass::make($frame);
     }
 }

@@ -36,7 +36,7 @@ class Recursable
         string $signature = '',
     ) {
         $this->callback = $callback(...);
-        $this->signature = $signature ?: Recurser::instance()->factory->makeContextFromCallable($callback)->signature();
+        $this->signature = $signature ?: Recurser::instance()->factory->makeContextFromCallable($callback)->signature;
         $this->hash = static::hashSignature($this->signature);
         $this->recurseWith = $recurseWith;
         $this->started = false;

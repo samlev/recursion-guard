@@ -6,7 +6,7 @@ use RecursionGuard\Data\RecursionContext;
 
 covers(RecursionContext::class);
 
-it('makes new with defaults', function ($from, $signature) {
+it('creates new with defaults', function ($from, $signature) {
     $context = new RecursionContext(...$from);
 
     expect($context->file)->toBe($from['file'] ?? '')
@@ -14,15 +14,8 @@ it('makes new with defaults', function ($from, $signature) {
         ->and($context->class)->toBe($from['class'] ?? '')
         ->and($context->line)->toBe($from['line'] ?? 0)
         ->and($context->object)->toBe($from['object'] ?? null)
-        ->and($context->signature())->toBe($signature);
-})->with([
-    'none' => [[], ':0'],
-    'file' => [['file' => 'foo.php'], 'foo.php:0'],
-    'function' => [['function' => 'foo'], ':foo'],
-    'class' => [['class' => 'foo'], ':foo@0'],
-    'line' => [['line' => 42], ':42'],
-    'object' => [['object' => (object) []], ':0'],
-]);
+        ->and($context->signature)->toBe($signature);
+})->with('contexts');
 
 it('only allows array read access to properties', function ($offset, $set, $exists, $value) {
     $context = new RecursionContext(

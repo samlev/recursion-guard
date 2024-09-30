@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace RecursionGuard\Data;
 
-use ArrayAccess;
-use JsonSerializable;
-use RecursionGuard\Support\ArrayWritesForbidden;
+use function RecursionGuard\array_only;
 
 /**
  * @phpstan-type FrameArray array{
@@ -17,71 +15,33 @@ use RecursionGuard\Support\ArrayWritesForbidden;
  *     'object'?: ?object,
  * }
  *
- * @implements ArrayAccess<'file'|'line'|'class'|'function'|'object', int|string|object|null>
+ * @extends BaseData<'file'|'line'|'class'|'function'|'object', int|string|object|null>
  */
-readonly class Frame implements ArrayAccess, JsonSerializable
+readonly class Frame extends BaseData
 {
-    use ArrayWritesForbidden;
-
-    public function __construct(
+    final public function __construct(
         public string $file = '',
-        public ?string $class = null,
-        public ?string $function = null,
+        public string $class = '',
+        public string $function = '',
         public int $line = 0,
         public object|null $object = null,
     ) {
         //
     }
 
-    public function empty(): bool
-    {
-        return
-            $this->file === ''
-            && empty($this->class)
-            && empty($this->function)
-            && $this->line === 0
-            && $this->object === null;
-    }
-
     /**
-     * @param int|string $offset
-     * @return ($offset is 'file'|'line'|'class'|'function'|'object' ? bool : false)
+     * @param Frame|FrameArray $from
+     * @return static
      */
-    public function offsetExists(mixed $offset): bool
+    public static function make(Frame|array $from = []): static
     {
-        return match ($offset) {
-            'file', 'line' => true,
-            'class', 'function', 'object' => $this->$offset !== null,
-            default => false,
-        };
-    }
+        /** @var FrameArray $from */
+        $from = (
+            $from instanceof Frame
+                ? $from->jsonSerialize()
+                : array_only($from, ['file', 'class', 'function', 'line', 'object'])
+        );
 
-    /**
-     * @param int|string $offset
-     * @return ($offset is 'file'
-     *          ? string
-     *          : ($offset is 'line'
-     *              ? int
-     *              : ($offset is 'object'
-     *                  ? object|null
-     *                  : ($offset is 'line'|'class'|'function' ? string|null : null))))
-     */
-    public function offsetGet(mixed $offset): mixed
-    {
-        return $this->offsetExists($offset) ? $this->$offset : null;
-    }
-
-    /**
-     * @return array{file: string, class: string|null, function: string|null, line: int, object: object|null}
-     */
-    public function jsonSerialize(): array
-    {
-        return [
-            'file' => $this->file,
-            'function' => $this->function,
-            'class' => $this->class,
-            'line' => $this->line,
-            'object' => $this->object,
-        ];
+        return new static(...$from);
     }
 }

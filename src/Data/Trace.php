@@ -4,33 +4,46 @@ declare(strict_types=1);
 
 namespace RecursionGuard\Data;
 
-use ArrayAccess;
-use JsonSerializable;
+use Countable;
+use RecursionGuard\Exception\InvalidTraceException;
 use RecursionGuard\Recurser;
-use RecursionGuard\Support\ArrayWritesForbidden;
 
 /**
  * @phpstan-import-type FrameArray from Frame
  * @phpstan-type TraceArray Frame[]|FrameArray[]
  *
- * @implements ArrayAccess<int, Frame>
+ * @extends BaseData<int, Frame>
  */
-readonly class Trace implements ArrayAccess, JsonSerializable
+readonly class Trace extends BaseData implements Countable
 {
-    use ArrayWritesForbidden;
-
-    /**
-     * @var Frame[]
-     */
+    /** @var Frame[] */
     public array $frames;
 
     /**
-     * @param TraceArray $frames
+     * @param array<array-key, mixed> $frames
      */
-    public function __construct(
+    final public function __construct(
         array $frames = [],
     ) {
-        $this->frames = array_map(Recurser::instance()->factory->makeFrame(...), $frames);
+        array_map(
+            fn (mixed $frame) => $frame instanceof Frame || throw InvalidTraceException::make($frames),
+            $frames,
+        );
+
+        /** @var Frame[] $frames */
+        $this->frames = array_values($frames);
+    }
+
+    /**
+     * @param Trace|TraceArray $frames
+     */
+    public static function make(Trace|array $frames = []): static
+    {
+        return new static(
+            $frames instanceof self
+                ? $frames->frames
+                : array_map(Recurser::instance()->factory->makeFrame(...), $frames)
+        );
     }
 
     /**
@@ -57,8 +70,9 @@ readonly class Trace implements ArrayAccess, JsonSerializable
      */
     public function empty(): bool
     {
-        return count($this->frames()) === 0;
+        return empty($this->frames());
     }
+
     /**
      * @param int $offset
      * @return bool
