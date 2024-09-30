@@ -1,6 +1,7 @@
 name: Coding Standards
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - 'main'
@@ -10,7 +11,7 @@ on:
       - 'phpcs.xml.dist'
       - 'phpstan.dist.neon'
       - '.php-cs-fixer.dist.php'
-      - '.github/workfliws/coding-standards.yml'
+      - '.github/workflows/coding-standards.yml'
   pull_request:
 
 jobs:
