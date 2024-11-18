@@ -92,7 +92,7 @@ readonly class Trace extends BaseData implements Countable
     }
 
     /**
-     * @return array<int, Frame>
+     * @return Frame[]
      */
     public function jsonSerialize(): array
     {

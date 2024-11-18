@@ -7,7 +7,7 @@ use RecursionGuard\Recursable;
 use RecursionGuard\Support\WithRecursable;
 use Tests\Support\Stubs\WithRecursableStub;
 
-covers(WithRecursable::class);
+mutates(WithRecursable::class);
 
 it('makes the base class', function () {
     $recursable = new Recursable(fn () => null, signature: 'foo');

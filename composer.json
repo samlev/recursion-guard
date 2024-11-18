@@ -34,10 +34,7 @@
     "autoload-dev": {
         "psr-4": {
             "Tests\\": "tests/"
-        },
-        "files" : [
-            "src/helpers.php"
-        ]
+        }
     },
     "scripts": {
         "lint:phpcsfixer": "php-cs-fixer check",
@@ -53,17 +50,22 @@
             "@lint:fix-phpcs",
             "@lint"
         ],
-        "test:stan": "phpstan analyse",
-        "test:arch": "pest --testsuite Architecture",
+        "test:fast": "pest --parallel",
+        "test:types": "phpstan analyse",
+        "test:architecture": "pest --testsuite Architecture",
         "test:docs": "pest --testsuite Documentation",
-        "test:feat": "pest --testsuite Feature",
+        "test:feature": "pest --testsuite Feature",
         "test:unit": "pest --testsuite Unit",
-        "test:para": "pest --parallel",
         "test:coverage": "XDEBUG_MODE=coverage pest --coverage --parallel",
         "test:mutate": "XDEBUG_MODE=coverage pest --mutate --parallel",
         "test": [
-            "@test:stan",
-            "@test:para"
+            "@test:types",
+            "@test:fast"
+        ],
+        "test:pr": [
+            "@lint",
+            "@test",
+            "@test:mutate"
         ]
     }
 }

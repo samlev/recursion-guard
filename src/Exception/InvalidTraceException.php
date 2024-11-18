@@ -10,9 +10,9 @@ use Throwable;
 
 class InvalidTraceException extends InvalidArgumentException
 {
-    /** @var array<int, mixed> */
+    /** @var array<array-key, mixed> */
     protected array $invalidTrace;
-    /** @var array<int, mixed> */
+    /** @var array<array-key, mixed> */
     protected array $invalidFrames = [];
 
     /**
@@ -40,7 +40,7 @@ class InvalidTraceException extends InvalidArgumentException
     }
 
     /**
-     * @return array<int, mixed>
+     * @return array<array-key, mixed>
      */
     public function getInvalidTrace(): array
     {
@@ -48,7 +48,7 @@ class InvalidTraceException extends InvalidArgumentException
     }
 
     /**
-     * @return array<int, mixed>
+     * @return array<array-key, mixed>
      */
     public function getInvalidFrames(): array
     {

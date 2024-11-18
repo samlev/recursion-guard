@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use RecursionGuard\Recursable;
 use RecursionGuard\Recurser;
 
 it('prevents recursion in closure', function () {

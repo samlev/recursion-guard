@@ -142,7 +142,7 @@ class Recurser
      * Get the stack of methods being called recursively for the given object.
      *
      * @param object $instance
-     * @return Recursable<mixed>[]
+     * @return array<string, Recursable<mixed>>
      */
     protected function getStack(object $instance): array
     {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use RecursionGuard\Support\ArrayWritesForbidden;
 
-covers(ArrayWritesForbidden::class);
+mutates(ArrayWritesForbidden::class);
 
 it('throws exception with on offset functions', function ($offset) {
     $mock = new class () implements \ArrayAccess {

@@ -38,14 +38,14 @@ See [the documentation](docs/index.md) for more explanation, examples, and advan
 You can run individual test suites using composer commands:
 ```bash
 # Static Analysis with phpstan
-composer test:stan
+composer test:types
 
 # Architecture tests
-composer test:arch
+composer test:architecture
 # Documentation tests (tests that cover any code in the documentation)
 composer test:docs
 # Feature/integration tests
-composer test:feat
+composer test:feature
 # Unit tests
 composer test:unit
 
@@ -63,6 +63,9 @@ composer lint
 
 # Static analysis and main test suites
 composer test
+
+# All checks that should be performed before a PR (linting, static analysis, and mutation tests)
+composer test:pr
 ```
 
 ### Code Style

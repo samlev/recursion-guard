@@ -141,3 +141,81 @@ it('only allows array read access to properties', function ($offset, $set, $exis
     'last index' => [5, 6, false, null],
     'random index' => [random_int(PHP_INT_MIN, PHP_INT_MAX), 42, false, null],
 ]);
+
+it('returns only selected keys', function ($keys, $expected) {
+    $input = [1, 2, 3, 4, 5, 'one' => 'one', 'two' => 'two', 'three' => 'three', 'four' => 'four', 'five' => 'five'];
+
+    expect(Frame::only($input, $keys))->toBe($expected);
+})->with([
+    'no keys' => [[], []],
+    'all keys' => [
+        [0, 1, 2, 3, 4, 'one', 'two', 'three', 'four', 'five'],
+        [
+            0 => 1,
+            1 => 2,
+            2 => 3,
+            3 => 4,
+            4 => 5,
+            'one' => 'one',
+            'two' => 'two',
+            'three' => 'three',
+            'four' => 'four',
+            'five' => 'five',
+        ],
+    ],
+    'first key' => [
+        [0],
+        [0 => 1],
+    ],
+    'last key' => [
+        ['five'],
+        ['five' => 'five'],
+    ],
+    'middle keys' => [
+        [1, 2, 3, 4, 'one', 'two', 'three', 'four'],
+        [
+            1 => 2,
+            2 => 3,
+            3 => 4,
+            4 => 5,
+            'one' => 'one',
+            'two' => 'two',
+            'three' => 'three',
+            'four' => 'four',
+        ],
+    ],
+    'keys that do not exist' => [
+        ['six', 'seven', 'eight', 9, 5, 100],
+        [],
+    ],
+    'keys out of order' => [
+        ['two', 'four', 'one', 3, 1],
+        [
+            1 => 2,
+            3 => 4,
+            'one' => 'one',
+            'two' => 'two',
+            'four' => 'four',
+        ],
+    ],
+]);
+
+it('only handles duplicate keys', function () {
+    expect(Frame::only(
+        ['one' => 'one', 'two' => 'two', 'three' => 'three', 'four' => 'four', 'five' => 'five'],
+        ['two', 'two', 'three', 'three', 'four', 'four']
+    ))->toBe([
+        'two' => 'two',
+        'three' => 'three',
+        'four' => 'four',
+    ]);
+});
+
+it('only ignores keys for keys array', function () {
+    expect(Frame::only(['foo' => 'bar', 'bar' => 'foo'], ['foo' => 'bar']))
+        ->toBe(['bar' => 'foo']);
+});
+
+it('only ignores invalid key types', function () {
+    Frame::only([], [[], true, null, (object) [], 3.14]);
+})->throwsNoExceptions();
