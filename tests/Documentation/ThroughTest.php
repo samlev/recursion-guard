@@ -2,15 +2,8 @@
 
 declare(strict_types=1);
 
-function through(mixed $value, callable $through): mixed
-{
-    return RecursionGuard\Recurser::call(fn () => $through($value), $value);
-}
-
-function pipe(mixed $value, callable ...$through): mixed
-{
-    return array_reduce($through, through(...), $value);
-}
+use function Tests\Support\Documentation\Through\through;
+use function Tests\Support\Documentation\Through\pipe;
 
 it('passes a value through a callback', function () {
     expect(through('foo', 'strtoupper'))->toBe('FOO');

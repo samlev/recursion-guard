@@ -2,25 +2,10 @@
 
 declare(strict_types=1);
 
-function once(callable $callback)
-{
-    return RecursionGuard\Recurser::call($callback, 'RECURSION');
-}
-
-function twice(callable $callback)
-{
-    return once($callback) . ', ' . once($callback);
-}
-
-function roll_dice()
-{
-    return random_int(1, 6);
-}
-
-function roll_two_dice()
-{
-    return twice('roll_dice');
-}
+use function Tests\Support\Documentation\RollDice\once;
+use function Tests\Support\Documentation\RollDice\twice;
+use function Tests\Support\Documentation\RollDice\roll_dice;
+use function Tests\Support\Documentation\RollDice\roll_two_dice;
 
 it('rolls a die', function () {
     $rolls = [
@@ -43,16 +28,16 @@ it('rolls a die', function () {
 
 it('rolls a die through once', function () {
     $rolls = [
-        once('roll_dice'),
-        once('roll_dice'),
-        once('roll_dice'),
-        once('roll_dice'),
-        once('roll_dice'),
-        once('roll_dice'),
-        once('roll_dice'),
-        once('roll_dice'),
-        once('roll_dice'),
-        once('roll_dice'),
+        once(roll_dice(...)),
+        once(roll_dice(...)),
+        once(roll_dice(...)),
+        once(roll_dice(...)),
+        once(roll_dice(...)),
+        once(roll_dice(...)),
+        once(roll_dice(...)),
+        once(roll_dice(...)),
+        once(roll_dice(...)),
+        once(roll_dice(...)),
     ];
 
     expect($rolls)->toHaveCount(10)
@@ -62,11 +47,11 @@ it('rolls a die through once', function () {
 
 it('rolls a die twice through twice', function () {
     $rolls = [
-        twice('roll_dice'),
-        twice('roll_dice'),
-        twice('roll_dice'),
-        twice('roll_dice'),
-        twice('roll_dice'),
+        twice(roll_dice(...)),
+        twice(roll_dice(...)),
+        twice(roll_dice(...)),
+        twice(roll_dice(...)),
+        twice(roll_dice(...)),
     ];
 
     expect($rolls)->toHaveCount(5)
@@ -108,11 +93,11 @@ it('rolls two dice', function () {
 
 it('hits recursion guard on roll two dice through once', function () {
     $rolls = [
-        once('roll_two_dice'),
-        once('roll_two_dice'),
-        once('roll_two_dice'),
-        once('roll_two_dice'),
-        once('roll_two_dice'),
+        once(roll_two_dice(...)),
+        once(roll_two_dice(...)),
+        once(roll_two_dice(...)),
+        once(roll_two_dice(...)),
+        once(roll_two_dice(...)),
     ];
 
     expect($rolls)->toHaveCount(5)
@@ -121,11 +106,11 @@ it('hits recursion guard on roll two dice through once', function () {
 
 it('hits recursion guard on roll two dice through twice', function () {
     $rolls = [
-        twice('roll_two_dice'),
-        twice('roll_two_dice'),
-        twice('roll_two_dice'),
-        twice('roll_two_dice'),
-        twice('roll_two_dice'),
+        twice(roll_two_dice(...)),
+        twice(roll_two_dice(...)),
+        twice(roll_two_dice(...)),
+        twice(roll_two_dice(...)),
+        twice(roll_two_dice(...)),
     ];
 
     expect($rolls)->toHaveCount(5)

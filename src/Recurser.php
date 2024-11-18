@@ -172,7 +172,7 @@ class Recurser
      */
     protected function setValue(Recursable $target): Recursable
     {
-        $stack = $this->getStack($target);
+        $stack = $this->getStack($target->object() ?? $this->defaultScope);
         $stack[$target->hash] = $target;
         $this->setStack($target->object() ?? $this->defaultScope, $stack);
 

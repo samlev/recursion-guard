@@ -2,29 +2,7 @@
 
 declare(strict_types=1);
 
-class LinkedList
-{
-    protected ?LinkedList $next = null;
-
-    public function __construct(
-        public readonly int $id,
-    ) {
-        //
-    }
-
-    public function next(LinkedList $next): void
-    {
-        $this->next = $next;
-    }
-
-    public function children(): array
-    {
-        return RecursionGuard\Recurser::call(
-            fn () => array_filter([$this->next?->id, ...($this->next?->children() ?? [])]),
-            [],
-        );
-    }
-}
+use Tests\Support\Documentation\LinkedList\LinkedList;
 
 it('returns empty set if there are no children', function () {
     $head = new LinkedList(1);

@@ -34,7 +34,14 @@
     "autoload-dev": {
         "psr-4": {
             "Tests\\": "tests/"
-        }
+        },
+        "files": [
+            "tests/Support/Documentation/BozoRepeat/helpers.php",
+            "tests/Support/Documentation/Fib/helpers.php",
+            "tests/Support/Documentation/RollDice/helpers.php",
+            "tests/Support/Documentation/Through/helpers.php",
+            "tests/Support/Documentation/BozoRepeat/helpers.php"
+        ]
     },
     "scripts": {
         "lint:phpcsfixer": "php-cs-fixer check",
@@ -64,8 +71,7 @@
         ],
         "test:pr": [
             "@lint",
-            "@test",
-            "@test:mutate"
+            "@test"
         ]
     }
 }

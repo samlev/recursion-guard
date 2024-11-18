@@ -2,17 +2,7 @@
 
 declare(strict_types=1);
 
-function fib(int $position): int
-{
-    return RecursionGuard\Recurser::call(
-        // Add the two previous numbers together
-        fn () => fib($position - 1) + fib($position - 2),
-        // Return 0 for negative positions, and 1 for position 0
-        max(0, ($position ?: 1)),
-        // Allow recursion until we hit position 0
-        as: sprintf('fib(%d)', max(0, ($position ?: 1))),
-    );
-}
+use function Tests\Support\Documentation\Fib\fib;
 
 it('provides the expected fibonacci number', function ($for, $expected) {
     expect(fib($for))->toBe($expected);

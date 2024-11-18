@@ -2,101 +2,11 @@
 
 declare(strict_types=1);
 
-class Location
-{
-    /**
-     * @var array<string, Step>
-     */
-    public array $connections = [];
-
-    public function __construct(
-        public readonly string $name,
-    ) {
-        //
-    }
-
-    public function connectTo(Location $location, int $distance): void
-    {
-        if (isset($this->connections[$location->name])) {
-            return;
-        }
-        $this->connections[$location->name] = new Step($this, $location, $distance);
-        $location->connectTo($this, $distance);
-    }
-}
-
-class Step
-{
-    public readonly string $name;
-
-    public function __construct(
-        public readonly Location $from,
-        public readonly Location $to,
-        public readonly int $distance,
-    ) {
-        $this->name = sprintf('%s -> %s', $this->from->name, $this->to->name);
-    }
-}
-
-class TravellingSalesman
-{
-    public function __construct(
-        public Location $current,
-        public Location $destination,
-    ) {
-        //
-    }
-
-    /**
-     * @return Step[]
-     */
-    public function route(): array
-    {
-        $path = $this->shortestPath($this->current, $this->destination);
-
-        return $path;
-    }
-
-    public function shortestPath(Location $from, Location $to, $trail = []): array
-    {
-        return RecursionGuard\Recurser::call(
-            function () use ($from, $to, $trail) {
-                $previous = end($trail) ?: null;
-                $final = $trail;
-                $shortest = 0;
-
-                foreach ($from->connections as $step) {
-                    // Don't travel back to the previous location
-                    if ($step->to === $previous?->from) {
-                        continue;
-                    }
-
-                    $path = [...$trail, $step];
-
-                    // if we're not at the end, keep recursing
-                    if ($step->to !== $to) {
-                        $path = $this->shortestPath($step->to, $to, $path);
-                    }
-
-                    $distance = array_sum(array_column($path, 'distance'));
-
-                    if (!$shortest || $distance < $shortest) {
-                        $shortest = $distance;
-                        $final = $path;
-                    }
-                }
-
-                return $final;
-            },
-            // We have visited this location before, so return a distance that is too long
-            [new Step($from, $to, 9999999)],
-            for: $from,
-        );
-    }
-}
+use Tests\Support\Documentation\TravellingSalesman\Location;
+use Tests\Support\Documentation\TravellingSalesman\Salesman;
 
 it('finds shortest route', function (Location $from, Location $to, array $expectedTrail) {
-    $travellingSalesman = new TravellingSalesman($from, $to);
+    $travellingSalesman = new Salesman($from, $to);
 
     $trail = $travellingSalesman->route();
 

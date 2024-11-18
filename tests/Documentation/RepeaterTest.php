@@ -2,27 +2,7 @@
 
 declare(strict_types=1);
 
-class Repeater
-{
-    public function __construct(
-        public readonly int $times,
-    ) {
-        //
-    }
-
-    /**
-     * @param string|callable(): string $repeat
-     * @param string $default
-     * @return string
-     */
-    public function __invoke(string|callable $repeat, string $default): string
-    {
-        return RecursionGuard\Recurser::call(
-            fn () => sprintf('%d: [%s]', $this->times, implode(', ', array_fill(0, $this->times, (is_callable($repeat) ? $repeat() : $repeat)))),
-            sprintf('%d (default): [%s]', $this->times, implode(', ', array_fill(0, $this->times, $default))),
-        );
-    }
-}
+use Tests\Support\Documentation\Repeater\Repeater;
 
 it('repeats a string', function ($times, $value, $default, $expected) {
     $repeat = new Repeater($times);
