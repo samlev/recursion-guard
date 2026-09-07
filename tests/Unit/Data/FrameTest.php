@@ -5,7 +5,7 @@ declare(strict_types=1);
 use RecursionGuard\Data\Frame;
 use RecursionGuard\Data\RecursionContext;
 
-covers(Frame::class);
+mutates(Frame::class);
 
 it('makes a new frame that is empty', function () {
     $frame = new Frame();

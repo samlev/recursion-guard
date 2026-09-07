@@ -15,7 +15,7 @@ use Tests\Support\Stubs\RecursableStub;
 use Tests\Support\Stubs\RecursionContextStub;
 use Tests\Support\Stubs\TraceStub;
 
-covers(Factory::class);
+mutates(Factory::class);
 
 it('makes frame with from configured frame class', function ($from) {
     $this->spy()->expect(FrameStub::class . '::make', [$from]);
