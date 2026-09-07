@@ -6,7 +6,7 @@
         "php": "^8.2"
     },
     "require-dev": {
-        "pestphp/pest": "^3.2",
+        "pestphp/pest": "^5.0",
         "squizlabs/php_codesniffer": "^4.0",
         "phpstan/phpstan": "^2.0",
         "friendsofphp/php-cs-fixer": "^3.0",
@@ -57,7 +57,7 @@
             "@lint:fix-phpcs",
             "@lint"
         ],
-        "test:fast": "pest --parallel",
+        "test:fast": "pest --parallel --tia",
         "test:types": "phpstan analyse",
         "test:architecture": "pest --testsuite Architecture",
         "test:docs": "pest --testsuite Documentation",

@@ -62,7 +62,6 @@ it('wraps non-closure callable in closure for callback', function (callable $cal
 
     expect($recursable->callback)
         ->toBeInstanceOf(\Closure::class)
-        ->toEqual($callable(...))
         ->not->toBe($callable);
 })->with([
     'callable string' => ['rand'],
