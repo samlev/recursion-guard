@@ -15,7 +15,7 @@ use Tests\Support\Stubs\RecursableStub;
 use Tests\Support\Stubs\RecursionContextStub;
 use Tests\Support\Stubs\TraceStub;
 
-mutates(Factory::class);
+covers(Factory::class);
 
 it('makes frame with from configured frame class', function ($from) {
     $this->spy()->expect(FrameStub::class . '::make', [$from]);
@@ -205,6 +205,29 @@ it('should make context from functions', function (callable $from) {
     'callable string' => ['rand'],
     'first class callable' => [rand(...)],
 ]);
+
+it('uses reflected string for closure function name in PHP8.2', function () {
+    $closure = fn () => 'foo';
+    $factory = new Factory();
+    $context = $factory->makeContextFromFunction($closure);
+    $expected = (new ReflectionFunction($closure));
+
+    expect($context->function)
+        ->toBe((string) $expected)
+        ->not->toBe($expected->getName())
+        ->toContain('{closure}');
+})->skip(PHP_VERSION_ID >= 80300, 'PHP8.2 stringifies closures differently');
+
+it('uses reflected string for closure function name in >=PHP8.3', function () {
+    $closure = fn () => 'foo';
+    $factory = new Factory();
+    $context = $factory->makeContextFromFunction($closure);
+    $expected = (new ReflectionFunction($closure));
+
+    expect($context->function)
+        ->toBe($expected->getName())
+        ->toContain('{closure:');
+})->skip(PHP_VERSION_ID < 80300, 'PHP8.3 stringifies closures differently');
 
 it('should throw an exception when trying to make context from invalid function', function ($from) {
     $factory = new Factory();

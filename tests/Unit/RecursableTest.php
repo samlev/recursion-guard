@@ -6,7 +6,7 @@ use RecursionGuard\Exception\RecursionException;
 use RecursionGuard\Recursable;
 use Tests\Support\Stubs\RecursableStub;
 
-mutates(Recursable::class);
+covers(Recursable::class);
 
 it('hashes signature', function () {
     $signature = random_bytes(16);

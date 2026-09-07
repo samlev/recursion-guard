@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use RecursionGuard\Data\RecursionContext;
 
-mutates(RecursionContext::class);
+covers(RecursionContext::class);
 
 it('creates new with defaults', function ($from, $signature) {
     $context = new RecursionContext(...$from);

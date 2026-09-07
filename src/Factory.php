@@ -126,9 +126,7 @@ class Factory
             return new $this->contextClass(
                 $reflector->getFileName() ?: '',
                 $reflector->getClosureScopeClass()?->getName() ?? '',
-                $reflector->getName() === '{closure}'
-                    ? (string)$reflector
-                    : $reflector->getName(),
+                $reflector->getName() === '{closure}' ? (string)$reflector : $reflector->getName(),
                 $reflector->getStartLine() ?: 0,
                 $reflector->getClosureThis(),
             );

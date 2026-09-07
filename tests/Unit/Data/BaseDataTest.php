@@ -18,7 +18,7 @@ use Tests\Support\Data\ReadonlyNullableClass;
 use Tests\Support\Data\ReadonlyPromotedProperties;
 use Tests\Support\Data\StaticProperties;
 
-mutates(BaseData::class);
+covers(BaseData::class);
 
 it('checks if an object is empty', function (BaseData $object, bool $empty) {
     expect($object->empty())->toBe($empty);

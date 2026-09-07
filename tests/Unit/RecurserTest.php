@@ -6,7 +6,7 @@ use RecursionGuard\Factory;
 use RecursionGuard\Recurser;
 use Tests\Support\Stubs\RecurserStub;
 
-mutates(Recurser::class);
+covers(Recurser::class);
 
 test('manages instances', function () {
     $instance = Recurser::instance();

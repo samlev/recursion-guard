@@ -63,8 +63,8 @@
         "test:docs": "pest --testsuite Documentation",
         "test:feature": "pest --testsuite Feature",
         "test:unit": "pest --testsuite Unit",
-        "test:coverage": "XDEBUG_MODE=coverage pest --coverage --parallel",
-        "test:mutate": "XDEBUG_MODE=coverage pest --mutate --parallel",
+        "test:coverage": "pest --coverage --parallel",
+        "test:mutate": "pest --mutate --parallel",
         "test": [
             "@test:types",
             "@test:fast"
