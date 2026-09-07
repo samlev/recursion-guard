@@ -5,10 +5,53 @@ declare(strict_types=1);
 use RecursionGuard\Data\Frame;
 use RecursionGuard\Data\RecursionContext;
 
-covers(Frame::class, RecursionContext::class);
+covers(
+    Frame::class,
+    RecursionContext::class,
+    \RecursionGuard\Data\BaseData::class,
+    \RecursionGuard\Helper\Arr::class,
+);
 
-it('makes a new frame that is empty', function () {
-    $frame = new Frame();
+it('only allows array read access to properties', function ($offset, $set, $exists, $value) {
+    $frame = new Frame(
+        'foo.php',
+        'baz',
+        'bar',
+        42,
+        (object)[],
+    );
+
+    $message = Frame::class . ' is read-only';
+
+    expect(fn () => $frame->offsetSet($offset, $set))->toThrow(\RuntimeException::class, $message)
+        ->and($frame->offsetGet($offset))->toEqual($value)
+        ->and(fn () => $frame->offsetUnset($offset))->toThrow(\RuntimeException::class, $message)
+        ->and($frame->offsetExists($offset))->toEqual($exists)
+        ->and(function () use (&$frame, $offset, $set) {
+            $frame[$offset] = $set;
+        })->toThrow(\RuntimeException::class, $message)
+        ->and($frame[$offset])->toEqual($value)
+        ->and(function () use (&$frame, $offset) {
+            unset($frame[$offset]);
+        })->toThrow(\RuntimeException::class, $message)
+        ->and(isset($frame[$offset]))->toEqual($exists);
+})->with([
+    'file' => ['file', 'bing.php', true, 'foo.php'],
+    'line' => ['line', 99, true, 42],
+    'class' => ['class', 'bang', true, 'baz'],
+    'function' => ['function', 'bong', true, 'bar'],
+    'object' => ['object', new RecursionContext(), true, (object)[]],
+    'signature' => ['signature', 'bing.php:bang@bong', false, null],
+    'unknown string' => ['foo', 'foo', false, null],
+    'static method' => ['make', 'bar', false, null],
+    'instance method' => ['jsonSerialize', 'bing', false, null],
+    'first index' => [0, 1, false, null],
+    'last index' => [5, 6, false, null],
+    'random index' => [random_int(PHP_INT_MIN, PHP_INT_MAX), 42, false, null],
+]);
+
+it('reports default values as empty', function (array $params) {
+    $frame = new Frame(...$params);
 
     expect($frame->empty())->toBeTrue()
         ->and($frame->file)->toBe('')
@@ -21,7 +64,17 @@ it('makes a new frame that is empty', function () {
         ->and($frame['line'])->toBe(0)
         ->and($frame->object)->toBeNull()
         ->and($frame['object'])->toBeNull();
-});
+})->with([
+    'default parameters' => [[]],
+    'only file' => [['file' => '']],
+    'only class' => [['class' => '']],
+    'only function' => [['function' => '']],
+    'only line' => [['line' => 0]],
+    'only object' => [['object' => null]],
+    'only strings' => [['file' => '', 'class' => '', 'function' => '']],
+    'only non-strings' => [['line' => 0, 'object' => null]],
+    'all parameters' => [['file' => '', 'class' => '', 'function' => '', 'line' => 0, 'object' => null]],
+]);
 
 it('creates new with defaults', function ($from, $empty) {
     $from = array_intersect_key($from, array_flip(['file', 'class', 'function', 'line', 'object']));
@@ -53,6 +106,7 @@ it('creates new with defaults', function ($from, $empty) {
         ])
         ->and($frame->empty())->toBe($empty);
 })->with('frames');
+
 
 it('makes with defaults', function ($from, $empty) {
     $frame = Frame::make($from);
@@ -102,119 +156,3 @@ it('clones frame when making from existing frame', function ($from, $empty) {
         ->and($frame->empty())->toBe($empty)
         ->and($frame->empty())->toBe($from->empty());
 })->with('frame objects');
-
-it('only allows array read access to properties', function ($offset, $set, $exists, $value) {
-    $frame = new Frame(
-        'foo.php',
-        'baz',
-        'bar',
-        42,
-        (object)[],
-    );
-
-    $message = Frame::class . ' is read-only';
-
-    expect(fn () => $frame->offsetSet($offset, $set))->toThrow(\RuntimeException::class, $message)
-        ->and($frame->offsetGet($offset))->toEqual($value)
-        ->and(fn () => $frame->offsetUnset($offset))->toThrow(\RuntimeException::class, $message)
-        ->and($frame->offsetExists($offset))->toEqual($exists)
-        ->and(function () use (&$frame, $offset, $set) {
-            $frame[$offset] = $set;
-        })->toThrow(\RuntimeException::class, $message)
-        ->and($frame[$offset])->toEqual($value)
-        ->and(function () use (&$frame, $offset) {
-            unset($frame[$offset]);
-        })->toThrow(\RuntimeException::class, $message)
-        ->and(isset($frame[$offset]))->toEqual($exists);
-})->with([
-    'file' => ['file', 'bing.php', true, 'foo.php'],
-    'line' => ['line', 99, true, 42],
-    'class' => ['class', 'bang', true, 'baz'],
-    'function' => ['function', 'bong', true, 'bar'],
-    'object' => ['object', new RecursionContext(), true, (object)[]],
-    'signature' => ['signature', 'bing.php:bang@bong', false, null],
-    'unknown string' => ['foo', 'foo', false, null],
-    'static method' => ['make', 'bar', false, null],
-    'instance method' => ['jsonSerialize', 'bing', false, null],
-    'first index' => [0, 1, false, null],
-    'last index' => [5, 6, false, null],
-    'random index' => [random_int(PHP_INT_MIN, PHP_INT_MAX), 42, false, null],
-]);
-
-it('returns only selected keys', function ($keys, $expected) {
-    $input = [1, 2, 3, 4, 5, 'one' => 'one', 'two' => 'two', 'three' => 'three', 'four' => 'four', 'five' => 'five'];
-
-    expect(Frame::only($input, $keys))->toBe($expected);
-})->with([
-    'no keys' => [[], []],
-    'all keys' => [
-        [0, 1, 2, 3, 4, 'one', 'two', 'three', 'four', 'five'],
-        [
-            0 => 1,
-            1 => 2,
-            2 => 3,
-            3 => 4,
-            4 => 5,
-            'one' => 'one',
-            'two' => 'two',
-            'three' => 'three',
-            'four' => 'four',
-            'five' => 'five',
-        ],
-    ],
-    'first key' => [
-        [0],
-        [0 => 1],
-    ],
-    'last key' => [
-        ['five'],
-        ['five' => 'five'],
-    ],
-    'middle keys' => [
-        [1, 2, 3, 4, 'one', 'two', 'three', 'four'],
-        [
-            1 => 2,
-            2 => 3,
-            3 => 4,
-            4 => 5,
-            'one' => 'one',
-            'two' => 'two',
-            'three' => 'three',
-            'four' => 'four',
-        ],
-    ],
-    'keys that do not exist' => [
-        ['six', 'seven', 'eight', 9, 5, 100],
-        [],
-    ],
-    'keys out of order' => [
-        ['two', 'four', 'one', 3, 1],
-        [
-            1 => 2,
-            3 => 4,
-            'one' => 'one',
-            'two' => 'two',
-            'four' => 'four',
-        ],
-    ],
-]);
-
-it('only handles duplicate keys', function () {
-    expect(Frame::only(
-        ['one' => 'one', 'two' => 'two', 'three' => 'three', 'four' => 'four', 'five' => 'five'],
-        ['two', 'two', 'three', 'three', 'four', 'four']
-    ))->toBe([
-        'two' => 'two',
-        'three' => 'three',
-        'four' => 'four',
-    ]);
-});
-
-it('only ignores keys for keys array', function () {
-    expect(Frame::only(['foo' => 'bar', 'bar' => 'foo'], ['foo' => 'bar']))
-        ->toBe(['bar' => 'foo']);
-});
-
-it('only ignores invalid key types', function () {
-    Frame::only([], [[], true, null, (object) [], 3.14]);
-})->throwsNoExceptions();

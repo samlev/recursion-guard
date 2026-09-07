@@ -6,7 +6,13 @@ use RecursionGuard\Data\Frame;
 use RecursionGuard\Data\Trace;
 use RecursionGuard\Exception\InvalidTraceException;
 
-covers(Trace::class, Frame::class);
+covers(
+    Trace::class,
+    Frame::class,
+    \RecursionGuard\Exception\InvalidTraceException::class,
+    \RecursionGuard\Factory::class,
+    \RecursionGuard\Recurser::class,
+);
 
 it('creates new from an array of frames', function ($from, $empty) {
     $trace = new Trace($from);
