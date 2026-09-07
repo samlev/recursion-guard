@@ -246,7 +246,7 @@ it('uses reflected string for closure function name in PHP8.2', function () {
         ->toBe((string) $expected)
         ->not->toBe($expected->getName())
         ->toContain('{closure}');
-})->skipOnPhp('>=8.3.0');
+})->skipOnPhp('>=8.4.0');
 
 it('uses reflected string for closure function name in >=PHP8.3', function () {
     $closure = fn () => 'foo';
@@ -257,7 +257,7 @@ it('uses reflected string for closure function name in >=PHP8.3', function () {
     expect($context->function)
         ->toBe($expected->getName())
         ->toContain('{closure:');
-})->skipOnPhp('<8.3.0');
+})->skipOnPhp('<8.4.0');
 
 it('should throw an exception when trying to make context from invalid function', function ($from) {
     $factory = new Factory();
