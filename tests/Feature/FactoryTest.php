@@ -119,7 +119,7 @@ it('makes context from trace object if trace is not empty', function ($trace) {
     expect($factory->makeContext($callable, $trace))->toBe($context);
 })->with('trace objects');
 
-it('does not make context from trace object if trace is empty', function ($trace) {
+it('does not make context from trace object if trace is empty', function (Trace $trace) {
     $factory = m::mock(Factory::class)->makePartial();
 
     $callable = fn () => null;
@@ -153,7 +153,7 @@ it('should make context from non-empty trace frames', function ($from) {
         ->and($context->object)->toEqual($object);
 })->with('trace objects');
 
-it('should not make context from non-empty trace frames', function ($from) {
+it('should not make context from non-empty trace frames', function (Trace $from) {
     $factory = new Factory();
 
     expect(fn () => $factory->makeContextFromTrace($from))

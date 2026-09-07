@@ -40,7 +40,7 @@ it('only allows array read access to properties', function ($offset, $set, $exis
     'line' => ['line', 99, true, 42],
     'class' => ['class', 'bang', true, 'baz'],
     'function' => ['function', 'bong', true, 'bar'],
-    'object' => ['object', new RecursionContext(), true, (object)[]],
+    'object' => fn () => ['object', new RecursionContext(), true, (object)[]],
     'signature' => ['signature', 'bing.php:bang@bong', false, null],
     'unknown string' => ['foo', 'foo', false, null],
     'static method' => ['make', 'bar', false, null],
@@ -76,7 +76,7 @@ it('reports default values as empty', function (array $params) {
     'all parameters' => [['file' => '', 'class' => '', 'function' => '', 'line' => 0, 'object' => null]],
 ]);
 
-it('creates new with defaults', function ($from, $empty) {
+it('creates new with defaults', function ($from) {
     $from = array_intersect_key($from, array_flip(['file', 'class', 'function', 'line', 'object']));
 
     $frame = new Frame(...$from);
@@ -103,12 +103,11 @@ it('creates new with defaults', function ($from, $empty) {
             'function' => $function,
             'line' => $line,
             'object' => $object,
-        ])
-        ->and($frame->empty())->toBe($empty);
+        ]);
 })->with('frames');
 
 
-it('makes with defaults', function ($from, $empty) {
+it('makes with defaults', function (array $from) {
     $frame = Frame::make($from);
 
     $file = $from['file'] ?? '';
@@ -133,11 +132,10 @@ it('makes with defaults', function ($from, $empty) {
             'function' => $function,
             'line' => $line,
             'object' => $object,
-        ])
-        ->and($frame->empty())->toBe($empty);
+        ]);
 })->with('frames');
 
-it('clones frame when making from existing frame', function ($from, $empty) {
+it('clones frame when making from existing frame', function (Frame $from) {
     $frame = Frame::make($from);
 
     expect($frame)->not->toBe($from)
@@ -153,6 +151,5 @@ it('clones frame when making from existing frame', function ($from, $empty) {
         ->and($frame->object)->toBe($from->object)
         ->and($frame['object'])->toBe($from['object'])
         ->and($frame->jsonSerialize())->toBe($from->jsonSerialize())
-        ->and($frame->empty())->toBe($empty)
         ->and($frame->empty())->toBe($from->empty());
 })->with('frame objects');

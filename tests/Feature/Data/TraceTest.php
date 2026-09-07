@@ -14,7 +14,7 @@ covers(
     \RecursionGuard\Recurser::class,
 );
 
-it('creates new from an array of frames', function ($from) {
+it('creates new from an array of frames', function (array $from) {
     $trace = new Trace($from);
 
     expect($trace->count())->toEqual(count($from))
@@ -24,7 +24,7 @@ it('creates new from an array of frames', function ($from) {
         ->and($trace->jsonSerialize())->toEqual($from);
 })->with('frame arrays');
 
-it('creates new from an array of empty frames', function ($from) {
+it('creates new from an array of empty frames', function (array $from) {
     $trace = new Trace($from);
 
     expect($trace->count())->toEqual(count($from))
@@ -34,7 +34,7 @@ it('creates new from an array of empty frames', function ($from) {
         ->and($trace->jsonSerialize())->toEqual($from);
 })->with('empty frame arrays');
 
-it('throws exception on new with invalid frames', function ($from) {
+it('throws exception on new with invalid frames', function (array $from) {
     new Trace($from);
 })->throws(InvalidTraceException::class)
     ->with('invalid trace arrays');
@@ -89,7 +89,7 @@ it('makes from array of empty frames', function ($from) {
         ->and($trace->jsonSerialize())->toEqual($from);
 })->with('empty frame arrays');
 
-it('makes from an existing trace', function ($from) {
+it('makes from an existing trace', function (Trace $from) {
     $trace = Trace::make($from);
 
     expect($trace->count())->toEqual($from->count())
@@ -100,7 +100,7 @@ it('makes from an existing trace', function ($from) {
         ->and($trace->jsonSerialize())->toEqual($from->jsonSerialize());
 })->with('trace objects');
 
-it('makes from an empty trace', function ($from) {
+it('makes from an empty trace', function (Trace $from) {
     $trace = Trace::make($from);
 
     expect($trace->count())->toEqual($from->count())
