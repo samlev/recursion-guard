@@ -109,6 +109,10 @@ dataset('trace objects', [
         new Frame(),
         new Frame('whizz.php', line: 24),
     ]),
+    'second semi-empty frame' => fn () => new Trace([
+        new Frame('foo.php', 'foo', 'foo', 42, (object) []),
+        new Frame('bar.php', '', '', 0, null),
+    ]),
 ]);
 
 
