@@ -59,10 +59,23 @@ it('uses closure callable for callback', function (callable $callable) {
 
 it('wraps non-closure callable in closure for callback', function (callable $callable) {
     $recursable = new Recursable($callable);
+    $expected = \Closure::fromCallable($callable);
+    $actualReflection = new ReflectionFunction($recursable->callback);
+    $expectedReflection = new ReflectionFunction($expected);
 
-    expect($recursable->callback)
+    expect($recursable->callback)->toBeInstanceOf(\Closure::class)
+        ->and([
+            $actualReflection->getClosureScopeClass()?->getName(),
+            $actualReflection->getClosureThis(),
+            $actualReflection->getName(),
+        ])
+        ->toEqualCanonicalizing([
+            $expectedReflection->getClosureScopeClass()?->getName(),
+            $expectedReflection->getClosureThis(),
+            $expectedReflection->getName(),
+        ])
+        ->and($recursable->callback)
         ->toBeInstanceOf(\Closure::class)
-        ->toEqual($callable(...))
         ->not->toBe($callable);
 })->with([
     'callable string' => ['rand'],

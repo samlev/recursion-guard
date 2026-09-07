@@ -83,7 +83,6 @@ dataset('traces', [
     ],
 ]);
 
-
 /*
  * @dataset [
  *   array[]: $from,
@@ -91,19 +90,16 @@ dataset('traces', [
  * ]
  */
 dataset('trace objects', [
-    'empty' => [new Trace(), true],
     'one frame' => [
         new Trace([
             new Frame('foo.php', 'foo', 'foo', 42, (object) []),
         ]),
-        false,
     ],
     'two frames' => [
         new Trace([
             new Frame('foo.php', 'foo', 'foo', 42, (object) []),
             new Frame('bing.php', 'bang', 'boom', 99, new Frame()),
         ]),
-        false,
     ],
     'three frames' => [
         new Trace([
@@ -111,15 +107,6 @@ dataset('trace objects', [
             new Frame('bing.php', 'bang', 'boom', 99, new Frame()),
             new Frame('whizz.php', line: 24),
         ]),
-        false,
-    ],
-    'empty frames' => [
-        new Trace([
-            new Frame(),
-            new Frame(),
-            new Frame(),
-        ]),
-        true,
     ],
     'mixed frames' => [
         new Trace([
@@ -129,7 +116,24 @@ dataset('trace objects', [
             new Frame(),
             new Frame('whizz.php', line: 24),
         ]),
-        false,
+    ],
+]);
+
+
+/*
+ * @dataset [
+ *   array[]: $from,
+ *   bool: $empty,
+ * ]
+ */
+dataset('empty trace objects', [
+    'no frames' => [new Trace()],
+    'empty frames' => [
+        new Trace([
+            new Frame(),
+            new Frame(),
+            new Frame(),
+        ]),
     ],
 ]);
 

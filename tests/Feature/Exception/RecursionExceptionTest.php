@@ -6,7 +6,7 @@ use RecursionGuard\Exception\RecursionException;
 use RecursionGuard\Recursable;
 use Tests\Support\Stubs\RecursableStub;
 
-covers(RecursionException::class);
+covers(RecursionException::class, Recursable::class);
 
 it('makes with recursable', function () {
     $recursable = new Recursable(fn () => null, signature: 'foo');
