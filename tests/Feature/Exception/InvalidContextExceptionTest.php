@@ -5,7 +5,7 @@ declare(strict_types=1);
 use RecursionGuard\Data\Trace;
 use RecursionGuard\Exception\InvalidContextException;
 
-covers(InvalidContextException::class);
+covers(InvalidContextException::class, Trace::class);
 
 it('makes exception with generated message', function (mixed $from, string $message) {
     $exception = InvalidContextException::make($from);

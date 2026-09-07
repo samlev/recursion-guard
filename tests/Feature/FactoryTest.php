@@ -9,7 +9,6 @@ use RecursionGuard\Data\Trace;
 use RecursionGuard\Exception\InvalidContextException;
 use RecursionGuard\Factory;
 use RecursionGuard\Recursable;
-use Tests\Support\Stubs\FactoryStub;
 use Tests\Support\Stubs\FrameStub;
 use Tests\Support\Stubs\RecursableStub;
 use Tests\Support\Stubs\RecursionContextStub;

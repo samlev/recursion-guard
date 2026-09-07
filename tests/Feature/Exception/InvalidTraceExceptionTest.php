@@ -5,7 +5,7 @@ declare(strict_types=1);
 use RecursionGuard\Data\Frame;
 use RecursionGuard\Exception\InvalidTraceException;
 
-covers(InvalidTraceException::class);
+covers(InvalidTraceException::class, Frame::class);
 
 it('makes exception with generated message', function (mixed $from, string $message) {
     $exception = InvalidTraceException::make($from);

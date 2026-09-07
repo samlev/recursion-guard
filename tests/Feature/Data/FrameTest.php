@@ -5,7 +5,7 @@ declare(strict_types=1);
 use RecursionGuard\Data\Frame;
 use RecursionGuard\Data\RecursionContext;
 
-covers(Frame::class);
+covers(Frame::class, RecursionContext::class);
 
 it('makes a new frame that is empty', function () {
     $frame = new Frame();
@@ -24,7 +24,6 @@ it('makes a new frame that is empty', function () {
 });
 
 it('creates new with defaults', function ($from, $empty) {
-    // Grab only the keys we want to test
     $from = array_intersect_key($from, array_flip(['file', 'class', 'function', 'line', 'object']));
 
     $frame = new Frame(...$from);
