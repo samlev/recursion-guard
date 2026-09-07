@@ -20,9 +20,8 @@ jobs:
       fail-fast: true
       matrix:
         php: [8.2, 8.3, 8.4, 8.5]
-        suite: ['Architecture', 'Documentation', 'Feature', 'Unit']
 
-    name:  PHP ${{ matrix.php }} - ${{ matrix.suite }} Tests
+    name:  PHP ${{ matrix.php }} Tests
 
     steps:
       - name: Checkout code
@@ -38,4 +37,4 @@ jobs:
         run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Test code
-        run: vendor/bin/pest --testsuite ${{ matrix.suite }} --parallel
+        run: vendor/bin/pest --ci --parallel
