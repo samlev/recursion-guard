@@ -69,6 +69,21 @@ it('makes context from trace with configured trace class', function () {
         ->and($two->jsonSerialize())->toEqual($one->jsonSerialize());
 });
 
+it('makes context from trace with single frame (null called frame)', function () {
+    $trace = new Trace([
+        new Frame('foo.php', 'foo', 'foo', 42, (object) []),
+    ]);
+
+    $factory = new Factory();
+    $context = $factory->makeContextFromTrace($trace);
+
+    expect($context->file)->toBe('foo.php')
+        ->and($context->class)->toBe('')
+        ->and($context->function)->toBe('')
+        ->and($context->line)->toBe(42)
+        ->and($context->object)->toBeNull();
+});
+
 it('makes context from trace array if array is not empty', function ($from) {
     $factory = m::mock(Factory::class)->makePartial();
 

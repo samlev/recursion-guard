@@ -109,4 +109,19 @@ dataset('classes', [
         new PromotedMixedProperties(int: 99, bool: false, array: ['foo' => 'bar']),
         ['null' => null, 'string' => 'foo', 'int' => 42, 'bool' => true],
     ],
+    'class with only static properties' => [
+        new class {
+            public static string $static = 'static';
+            public string $instance = 'instance';
+        },
+        ['instance' => 'instance'],
+    ],
+    'promoted property without default value available' => [
+        new class(param: 'value') {
+            public function __construct(public string $param)
+            {
+            }
+        },
+        [],
+    ],
 ]);

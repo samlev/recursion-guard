@@ -84,3 +84,21 @@ it('only ignores keys for keys array', function () {
 it('only ignores invalid key types', function () {
     Arr::only([], [[], true, null, (object) [], 3.14]);
 })->throwsNoExceptions();
+
+it('only handles arrays with duplicate numeric keys', function () {
+    expect(Arr::only(
+        [1, 2, 3, 4, 5, 6, 7],
+        [0, 0, 1, 2, 2, 3, 5, 5],
+    ))->toEqual([
+        0 => 1,
+        1 => 2,
+        2 => 3,
+        3 => 4,
+        5 => 6,
+    ]);
+});
+
+it('only preserves key order after array_values reindexing', function () {
+    expect(Arr::only(['a' => 1, 'b' => 2, 'c' => 3], ['a', 'b', 'c']))
+        ->toBe(['a' => 1, 'b' => 2, 'c' => 3]);
+});

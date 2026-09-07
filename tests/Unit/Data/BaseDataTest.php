@@ -60,6 +60,23 @@ it('checks if an object is empty', function (BaseData $object, bool $empty) {
         ),
         false,
     ],
+    'object property with different type but equal value' => [
+        new DefaultPropertiesData(
+            object: (object) ['key' => 'value'],
+        ),
+        false,
+    ],
+    'all properties non-empty' => [
+        new DefaultPropertiesData(
+            null: null,
+            string: 'bar',
+            int: 1,
+            bool: false,
+            array: [1],
+            object: new stdClass(),
+        ),
+        false,
+    ],
 ]);
 
 it('uses public properties as offsets', function (DefaultPropertiesData $object) {

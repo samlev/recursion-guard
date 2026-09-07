@@ -150,3 +150,18 @@ it('only allows array read access to properties', function ($offset, $exists, $v
     'random positive index' => [random_int(3, PHP_INT_MAX), false, null],
     'random negative index' => [random_int(PHP_INT_MIN, -1), false, null],
 ]);
+
+it('reindexes frames to sequential numeric keys', function () {
+    $frames = [
+        new Frame('foo.php', 'foo', 'foo', 42, (object) []),
+        new Frame('bar.php', 'bar', 'bar', 10, new Frame()),
+        new Frame('baz.php', 'baz', 'baz', 20, new Frame()),
+    ];
+    
+    $trace = new Trace($frames);
+    
+    expect($trace->frames[0])->toEqual($frames[0])
+        ->and($trace->frames[1])->toEqual($frames[1])
+        ->and($trace->frames[2])->toEqual($frames[2])
+        ->and(array_keys($trace->frames))->toEqual([0, 1, 2]);
+});
