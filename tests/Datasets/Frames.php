@@ -82,17 +82,14 @@ dataset('frame objects', [
  * ]
  */
 dataset('frame arrays', [
-    'empty' => [[], true],
     'one frame' => [
         [new Frame('foo.php', 'foo', 'foo', 42, (object) [])],
-        false,
     ],
     'two frames' => [
         [
             new Frame('foo.php', 'foo', 'foo', 42, (object) []),
             new Frame('bing.php', 'bang', 'boom', 99, new Frame()),
         ],
-        false,
     ],
     'three frames' => [
         [
@@ -100,15 +97,6 @@ dataset('frame arrays', [
             new Frame('bing.php', 'bang', 'boom', 99, new Frame()),
             new Frame('whizz.php', line: 24),
         ],
-        false,
-    ],
-    'empty frames' => [
-        [
-            new Frame(),
-            new Frame(),
-            new Frame(),
-        ],
-        true,
     ],
     'mixed frames' => [
         [
@@ -118,6 +106,23 @@ dataset('frame arrays', [
             new Frame(),
             new Frame('whizz.php', line: 24),
         ],
-        false,
+    ],
+]);
+
+
+/*
+ * @dataset [
+ *   Frame[]: $from,
+ *   bool: $empty,
+ * ]
+ */
+dataset('empty frame arrays', [
+    'empty' => [[]],
+    'empty frames' => [
+        [
+            new Frame(),
+            new Frame(),
+            new Frame(),
+        ],
     ],
 ]);

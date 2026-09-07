@@ -14,15 +14,25 @@ covers(
     \RecursionGuard\Recurser::class,
 );
 
-it('creates new from an array of frames', function ($from, $empty) {
+it('creates new from an array of frames', function ($from) {
     $trace = new Trace($from);
 
     expect($trace->count())->toEqual(count($from))
         ->and(count($trace))->toEqual(count($from))
         ->and($trace->frames)->toEqual($from)
-        ->and($trace->empty())->toEqual($empty)
+        ->and($trace->empty())->toBeFalse()
         ->and($trace->jsonSerialize())->toEqual($from);
 })->with('frame arrays');
+
+it('creates new from an array of empty frames', function ($from) {
+    $trace = new Trace($from);
+
+    expect($trace->count())->toEqual(count($from))
+        ->and(count($trace))->toEqual(count($from))
+        ->and($trace->frames)->toEqual($from)
+        ->and($trace->empty())->toBeTrue()
+        ->and($trace->jsonSerialize())->toEqual($from);
+})->with('empty frame arrays');
 
 it('throws exception on new with invalid frames', function ($from) {
     new Trace($from);
@@ -38,11 +48,17 @@ it('is countable', function ($from) {
         ->and(count($trace))->toEqual(count($trace->frames));
 })->with('frame arrays');
 
-it('is empty if all frames are empty', function ($from, $empty) {
+it('is not empty if a frame is not empty', function ($from) {
     $trace = new Trace($from);
 
-    expect($trace->empty())->toBe($empty);
+    expect($trace->empty())->toBeFalse();
 })->with('frame arrays');
+
+it('is empty if all frames are empty', function ($from) {
+    $trace = new Trace($from);
+
+    expect($trace->empty())->toBeTrue();
+})->with('empty frame arrays');
 
 it('makes from trace array', function ($from, $expected, $withoutEmpty) {
     $trace = Trace::make($from);
@@ -55,25 +71,45 @@ it('makes from trace array', function ($from, $expected, $withoutEmpty) {
         ->and($trace->jsonSerialize())->toEqual($expected);
 })->with('traces');
 
-it('makes from array of frames', function ($from, $empty) {
+it('makes from array of frames', function ($from) {
     $trace = Trace::make($from);
 
     expect($trace->count())->toEqual(count($from))
         ->and($trace->frames)->toEqual($from)
-        ->and($trace->empty())->toEqual($empty)
+        ->and($trace->empty())->toBeFalse()
         ->and($trace->jsonSerialize())->toEqual($from);
 })->with('frame arrays');
 
-it('makes from an existing trace', function ($from, $empty) {
+it('makes from array of empty frames', function ($from) {
+    $trace = Trace::make($from);
+
+    expect($trace->count())->toEqual(count($from))
+        ->and($trace->frames)->toEqual($from)
+        ->and($trace->empty())->toBeTrue()
+        ->and($trace->jsonSerialize())->toEqual($from);
+})->with('empty frame arrays');
+
+it('makes from an existing trace', function ($from) {
     $trace = Trace::make($from);
 
     expect($trace->count())->toEqual($from->count())
         ->and($trace->frames)->toEqual($from->frames)
         ->and($trace->frames())->toEqual($from->frames())
         ->and($trace->frames(true))->toEqual($from->frames(true))
-        ->and($trace->empty())->toEqual($empty)
+        ->and($trace->empty())->toEqual(false)
         ->and($trace->jsonSerialize())->toEqual($from->jsonSerialize());
 })->with('trace objects');
+
+it('makes from an empty trace', function ($from) {
+    $trace = Trace::make($from);
+
+    expect($trace->count())->toEqual($from->count())
+        ->and($trace->frames)->toEqual($from->frames)
+        ->and($trace->frames())->toEqual($from->frames())
+        ->and($trace->frames(true))->toEqual($from->frames(true))
+        ->and($trace->empty())->toEqual(true)
+        ->and($trace->jsonSerialize())->toEqual($from->jsonSerialize());
+})->with('empty trace objects');
 
 it('excludes empty frames with frames method', function ($from, $expected, $withoutEmpty) {
     $trace = Trace::make($from);

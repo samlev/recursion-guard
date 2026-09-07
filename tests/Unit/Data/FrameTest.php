@@ -6,7 +6,7 @@ use RecursionGuard\Data\Frame;
 
 covers(Frame::class);
 
-it('has default constructor properties frame that is empty', function () {
+it('has default constructor properties', function () {
     $frame = new Frame();
 
     expect($frame->file)->toBe('')

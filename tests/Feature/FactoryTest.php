@@ -69,65 +69,96 @@ it('makes context from trace with configured trace class', function () {
         ->and($two->jsonSerialize())->toEqual($one->jsonSerialize());
 });
 
-it('makes context from trace array if array is not empty', function ($from, $empty) {
+it('makes context from trace array if array is not empty', function ($from) {
     $factory = m::mock(Factory::class)->makePartial();
 
     $callable = fn () => null;
-    $context = new RecursionContext(signature: $empty ? 'callable' : 'trace');
+    $context = new RecursionContext(signature: 'trace');
     $trace = Trace::make($from);
 
     $factory->shouldReceive('makeTrace')->once()->andReturn($trace);
-    $factory->shouldReceive($empty ? 'makeContextFromTrace' : 'makeContextFromCallable')->never();
-    $factory->shouldReceive($empty ? 'makeContextFromCallable' : 'makeContextFromTrace')
+    $factory->shouldReceive('makeContextFromCallable')->never();
+    $factory->shouldReceive('makeContextFromTrace')
         ->once()
-        ->withArgs(function ($with) use ($empty, $callable, $trace) {
-            return $empty ? $with === $callable : $with === $trace;
-        })
+        ->with($trace)
         ->andReturn($context);
 
     expect($factory->makeContext($callable, $from))->toBe($context);
 })->with('frame arrays');
 
-it('makes context from trace object if trace is not empty', function ($trace, $empty) {
+it('does not make context from trace array if array is empty', function ($from) {
     $factory = m::mock(Factory::class)->makePartial();
 
     $callable = fn () => null;
-    $context = new RecursionContext(signature: $empty ? 'callable' : 'trace');
+    $context = new RecursionContext(signature: 'callable');
+    $trace = Trace::make($from);
 
     $factory->shouldReceive('makeTrace')->once()->andReturn($trace);
-    $factory->shouldReceive($empty ? 'makeContextFromTrace' : 'makeContextFromCallable')->never();
-    $factory->shouldReceive($empty ? 'makeContextFromCallable' : 'makeContextFromTrace')
+    $factory->shouldReceive('makeContextFromTrace')->never();
+    $factory->shouldReceive('makeContextFromCallable')
         ->once()
-        ->withArgs(function ($with) use ($empty, $callable, $trace) {
-            return $empty ? $with === $callable : $with === $trace;
-        })
+        ->with($callable)
+        ->andReturn($context);
+
+    expect($factory->makeContext($callable, $from))->toBe($context);
+})->with('empty frame arrays');
+
+it('makes context from trace object if trace is not empty', function ($trace) {
+    $factory = m::mock(Factory::class)->makePartial();
+
+    $callable = fn () => null;
+    $context = new RecursionContext(signature: 'trace');
+
+    $factory->shouldReceive('makeTrace')->once()->andReturn($trace);
+    $factory->shouldReceive('makeContextFromCallable')->never();
+    $factory->shouldReceive('makeContextFromTrace')
+        ->once()
+        ->with($trace)
         ->andReturn($context);
 
     expect($factory->makeContext($callable, $trace))->toBe($context);
 })->with('trace objects');
 
-it('should make context from non-empty trace frames', function ($from, $empty) {
+it('does not make context from trace object if trace is empty', function ($trace) {
+    $factory = m::mock(Factory::class)->makePartial();
+
+    $callable = fn () => null;
+    $context = new RecursionContext(signature: 'callable');
+
+    $factory->shouldReceive('makeTrace')->once()->andReturn($trace);
+    $factory->shouldReceive('makeContextFromTrace')->never();
+    $factory->shouldReceive('makeContextFromCallable')
+        ->once()
+        ->with($callable)
+        ->andReturn($context);
+
+    expect($factory->makeContext($callable, $trace))->toBe($context);
+})->with('empty trace objects');
+
+it('should make context from non-empty trace frames', function ($from) {
     $factory = new Factory();
 
-    if ($empty) {
-        expect(fn () => $factory->makeContextFromTrace($from))
-            ->toThrow(InvalidContextException::class);
-    } else {
-        $context = $factory->makeContextFromTrace($from);
+    $context = $factory->makeContextFromTrace($from);
 
-        $file = $from->frames()[0]->file;
-        $class = $from->frames()[1]?->class ?? '';
-        $function = $from->frames()[1]?->function ?? '';
-        $line = $from->frames()[0]->line;
-        $object = $from->frames()[1]->object ?? null;
+    $file = $from->frames()[0]->file;
+    $class = $from->frames()[1]?->class ?? '';
+    $function = $from->frames()[1]?->function ?? '';
+    $line = $from->frames()[0]->line;
+    $object = $from->frames()[1]->object ?? null;
 
-        expect($context->file)->toBe($file)
-            ->and($context->class)->toBe($class)
-            ->and($context->function)->toBe($function)
-            ->and($context->line)->toBe($line)
-            ->and($context->object)->toEqual($object);
-    }
+    expect($context->file)->toBe($file)
+        ->and($context->class)->toBe($class)
+        ->and($context->function)->toBe($function)
+        ->and($context->line)->toBe($line)
+        ->and($context->object)->toEqual($object);
 })->with('trace objects');
+
+it('should not make context from non-empty trace frames', function ($from) {
+    $factory = new Factory();
+
+    expect(fn () => $factory->makeContextFromTrace($from))
+        ->toThrow(InvalidContextException::class);
+})->with('empty trace objects');
 
 it('should make context from the correct method with callable', function ($from, $type) {
     $factory = m::mock(Factory::class)->makePartial();
@@ -215,7 +246,7 @@ it('uses reflected string for closure function name in PHP8.2', function () {
         ->toBe((string) $expected)
         ->not->toBe($expected->getName())
         ->toContain('{closure}');
-})->skip(PHP_VERSION_ID >= 80300, 'PHP8.2 stringifies closures differently');
+})->skipOnPhp('>=8.3.0');
 
 it('uses reflected string for closure function name in >=PHP8.3', function () {
     $closure = fn () => 'foo';
@@ -226,7 +257,7 @@ it('uses reflected string for closure function name in >=PHP8.3', function () {
     expect($context->function)
         ->toBe($expected->getName())
         ->toContain('{closure:');
-})->skip(PHP_VERSION_ID < 80300, 'PHP8.3 stringifies closures differently');
+})->skipOnPhp('<8.3.0');
 
 it('should throw an exception when trying to make context from invalid function', function ($from) {
     $factory = new Factory();
@@ -318,6 +349,54 @@ it('should make context from invokable object', function () {
                 __FILE__,
                 $class->getName(),
                 '__invoke',
+            )
+        );
+});
+
+it('should make context from a closure object', function () {
+    $from = \Closure::fromCallable(fn () => 'foo');
+
+    $factory = new Factory();
+
+    $context = $factory->makeContextFromObject($from);
+
+    $class = new ReflectionClass($from);
+
+    expect($context->file)->toBe('')
+        ->and($context->line)->toBe(0)
+        ->and($context->function)->toBe('__invoke')
+        ->and($context->class)->toBe($class->getName())
+        ->and($context->object)->toEqual($from)
+        ->and($context->signature)->toBe(
+            sprintf(
+                '%s:%s@%s',
+                '',
+                $class->getName(),
+                '__invoke',
+            )
+        );
+});
+
+it('should make context from standard-library object', function () {
+    $from = new DateTime();
+
+    $factory = new Factory();
+
+    $context = $factory->makeContextFromCallableArray([$from, 'format']);
+
+    $class = new ReflectionClass($from);
+
+    expect($context->file)->toBe('')
+        ->and($context->line)->toBe(0)
+        ->and($context->function)->toBe('format')
+        ->and($context->class)->toBe($class->getName())
+        ->and($context->object)->toEqual($from)
+        ->and($context->signature)->toBe(
+            sprintf(
+                '%s:%s@%s',
+                '',
+                $class->getName(),
+                'format',
             )
         );
 });
