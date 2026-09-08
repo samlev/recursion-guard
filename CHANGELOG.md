@@ -23,7 +23,7 @@
 ### Breaking Changes
 
 * `RecursionGuard\Data\Frame::only()` has been moved to `RecursionGuard\Helper\Arr::only()`
-* `ecursionGuard\Data\BaseData::defaults()` has been moved to `RecursionGuard\Helper\Obj::defaults()`
+* `RecursionGuard\Data\BaseData::defaults()` has been moved to `RecursionGuard\Helper\Obj::defaults()`
 
 You are likely not using either of these methods directly, so it should not affect you.
 
