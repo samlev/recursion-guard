@@ -10,6 +10,8 @@ use Throwable;
 
 class InvalidTraceException extends InvalidArgumentException
 {
+    public const MESSAGE_DEFAULT = 'Invalid trace frame(s) provided: %s';
+
     /** @var array<array-key, mixed> */
     protected array $invalidTrace;
     /** @var array<array-key, mixed> */
@@ -26,10 +28,7 @@ class InvalidTraceException extends InvalidArgumentException
     ): self {
         $invalid = array_filter($from, fn ($frame) => !($frame instanceof Frame));
 
-        $message = $message ?: sprintf(
-            'Invalid trace frame(s) provided: %s',
-            json_encode($invalid),
-        );
+        $message = $message ?: sprintf(self::MESSAGE_DEFAULT, json_encode($invalid));
 
         $exception = new self($message, $code, $previous);
 

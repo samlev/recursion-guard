@@ -438,8 +438,8 @@ it('makes a recursable from configured recursable class', function () {
         ->not->toBeInstanceOf(RecursableStub::class)
         ->and($two)->toBeInstanceOf(Recursable::class)
         ->toBeInstanceOf(RecursableStub::class)
-        ->and($one->signature)->toBe($two->signature)
-        ->and($one->hash)->toBe($two->hash);
+        ->and($one->signature())->toBe($two->signature())
+        ->and($one->hash())->toBe($two->hash());
 });
 
 it('overrides parts when making recursable', function () {
@@ -475,17 +475,17 @@ it('overrides parts when making recursable', function () {
     $line = $method->getStartLine() ?: 0;
     $signature = sprintf('%s:%s', $file, ($class ? ($class . '@') : '') . ($function ?: $line));
 
-    expect($one->signature)->toBe($signature)
-        ->and($one->hash)->toBe(hash('xxh128', $signature))
+    expect($one->signature())->toBe($signature)
+        ->and($one->hash())->toBe(hash('xxh128', $signature))
         ->and($one->object())->toBe($callable)
-        ->and($two->signature)->toBe($signature)
-        ->and($two->hash)->toBe(hash('xxh128', $signature))
+        ->and($two->signature())->toBe($signature)
+        ->and($two->hash())->toBe(hash('xxh128', $signature))
         ->and($two->object())->toBe($object)
-        ->and($three->signature)->toBe('foo')
-        ->and($three->hash)->toBe(hash('xxh128', 'foo'))
+        ->and($three->signature())->toBe('foo')
+        ->and($three->hash())->toBe(hash('xxh128', 'foo'))
         ->and($three->object())->toBe($callable)
-        ->and($four->signature)->toBe('foo.php:bar@baz')
-        ->and($four->hash)->toBe(hash('xxh128', 'foo.php:bar@baz'))
+        ->and($four->signature())->toBe('foo.php:bar@baz')
+        ->and($four->hash())->toBe(hash('xxh128', 'foo.php:bar@baz'))
         ->and($four->object())->toBe($object)
         ->and($five->object())->toBe($otherObject);
 });

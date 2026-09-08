@@ -6,9 +6,9 @@ namespace Tests\Support;
 
 use Tests\TestCase;
 
-class StubSpy
+class Spy
 {
-    protected static ?StubSpy $instance = null;
+    protected static ?Spy $instance = null;
 
     protected array $called = [];
     protected bool $checked = false;
@@ -28,17 +28,12 @@ class StubSpy
 
     public static function flush(): void
     {
-        if (static::$instance) {
-            static::$instance->assert();
-            unset(static::$instance->test->spy);
-        }
-
         static::$instance = null;
     }
 
-    public static function instance(): ?self
+    public static function instance(): self
     {
-        return static::$instance;
+        return static::$instance ?? throw new \RuntimeException('Spy is not yet configured.');
     }
 
     public function call(string $method, array $params): void

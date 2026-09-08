@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 use RecursionGuard\Recurser;
 use Tests\Support\Stubs\RecurserStub;
-use Tests\Support\StubSpy;
+use Tests\Support\Spy;
 use Tests\TestCase;
+use JMac\Testing\Integrations\PHPUnit\VerifiesDoubles;
 
 $flush = function () {
     Recurser::flush();
     RecurserStub::flush();
-    StubSpy::flush();
+    Spy::flush();
 };
 
 beforeAll($flush);
 afterEach($flush);
 
-pest()->extend(TestCase::class)->in('Feature', 'Unit');
+pest()->extend(TestCase::class, VerifiesDoubles::class)->in('Feature', 'Unit');

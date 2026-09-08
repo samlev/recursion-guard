@@ -14,14 +14,22 @@ use RecursionGuard\Exception\RecursionException;
  * @template TReturnType
  * @phpstan-import-type FrameArray from Frame
  * @phpstan-import-type TraceArray from Trace
+ *
+ * @method string signature()
+ * @method string hash()
+ * @method Closure callback()
+ * @method mixed recurseWith()
+ * @method bool started()
+ * @method int stackDepth()
+ * @method object|null object()
  */
 class Recursable
 {
-    public readonly string $signature;
-    public readonly string $hash;
-    public readonly Closure $callback;
-    protected mixed $recurseWith;
-    protected object|null $object;
+    protected readonly string $signature;
+    protected readonly string $hash;
+    protected readonly Closure $callback;
+    protected mixed $recurseWith = null;
+    protected object|null $object = null;
     protected bool $started;
     protected int $stackDepth;
 
@@ -37,15 +45,10 @@ class Recursable
     ) {
         $this->callback = $callback(...);
         $this->signature = $signature ?: Recurser::instance()->factory->makeContextFromCallable($callback)->signature;
-        $this->hash = static::hashSignature($this->signature);
+        $this->hash = hash('xxh128', $this->signature);
         $this->recurseWith = $recurseWith;
         $this->started = false;
         $this->stackDepth = 0;
-    }
-
-    public function object(): ?object
-    {
-        return $this->object ?? null;
     }
 
     /**
@@ -71,9 +74,9 @@ class Recursable
         return $this;
     }
 
-    public function started(): bool
+    public function overflown(): bool
     {
-        return $this->started;
+        return $this->stackDepth < 0;
     }
 
     public function running(): bool
@@ -83,7 +86,7 @@ class Recursable
 
     public function finished(): bool
     {
-        return $this->started() && !$this->running();
+        return $this->started() && !$this->running() && !$this->overflown();
     }
 
     public function recursing(): bool
@@ -96,7 +99,7 @@ class Recursable
      */
     public function resolve(): mixed
     {
-        if ($this->finished() || $this->recursing()) {
+        if ($this->finished() || $this->recursing() || $this->overflown()) {
             throw RecursionException::make($this);
         }
 
@@ -128,13 +131,16 @@ class Recursable
     }
 
     /**
-     * Computes the hash of the recursable from the given signature.
-     *
-     * @param string $signature
-     * @return string
+     * @param string $method
+     * @param array<array-key, never> $parameters
+     * @return mixed
      */
-    protected static function hashSignature(string $signature): string
+    public function __call(string $method, array $parameters): mixed
     {
-        return hash('xxh128', $signature);
+        if (property_exists($this, $method)) {
+            return $this->$method;
+        }
+
+        throw new \BadMethodCallException(sprintf('Call to undefined method %s::%s()', static::class, $method));
     }
 }

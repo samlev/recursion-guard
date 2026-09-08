@@ -98,21 +98,21 @@ dataset('classes', [
     ],
     'readonly class' => fn () => [
         new class () {
-            readonly public null $null;
-            readonly public string $string;
-            readonly public int $int;
-            readonly public bool $bool;
-            readonly public array $array;
+            public readonly null $null;
+            public readonly string $string;
+            public readonly int $int;
+            public readonly bool $bool;
+            public readonly array $array;
         },
         ['null' => null],
     ],
     'readonly nullable class' => fn () => [
         new class () {
-            readonly public null $null;
-            readonly public ?string $string;
-            readonly public ?int $int;
-            readonly public ?bool $bool;
-            readonly public ?array $array;
+            public readonly null $null;
+            public readonly ?string $string;
+            public readonly ?int $int;
+            public readonly ?bool $bool;
+            public readonly ?array $array;
         },
         ['null' => null, 'string' => null, 'int' => null, 'bool' => null, 'array' => null],
     ],
@@ -195,14 +195,14 @@ dataset('classes', [
         ['null' => null, 'string' => 'foo', 'int' => 42, 'bool' => true],
     ],
     'class with only static properties' => fn () => [
-        new class {
+        new class () {
             public static string $static = 'static';
             public string $instance = 'instance';
         },
         ['instance' => 'instance'],
     ],
     'promoted property without default value available' => fn () => [
-        new class(param: 'value') {
+        new class (param: 'value') {
             public function __construct(public string $param)
             {
             }

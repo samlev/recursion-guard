@@ -39,7 +39,7 @@ it('throws exception on new with invalid frames', function (array $from) {
 })->throws(InvalidTraceException::class)
     ->with('invalid trace arrays');
 
-it('is countable', function ($from) {
+it('is countable', function (array $from) {
     $trace = new Trace($from);
 
     expect($trace->count())->toEqual(count($from))
@@ -48,19 +48,19 @@ it('is countable', function ($from) {
         ->and(count($trace))->toEqual(count($trace->frames));
 })->with('frame arrays');
 
-it('is not empty if a frame is not empty', function ($from) {
+it('is not empty if a frame is not empty', function (array $from) {
     $trace = new Trace($from);
 
     expect($trace->empty())->toBeFalse();
 })->with('frame arrays');
 
-it('is empty if all frames are empty', function ($from) {
+it('is empty if all frames are empty', function (array $from) {
     $trace = new Trace($from);
 
     expect($trace->empty())->toBeTrue();
 })->with('empty frame arrays');
 
-it('makes from trace array', function ($from, $expected, $withoutEmpty) {
+it('makes from trace array', function (array $from, array $expected, array $withoutEmpty) {
     $trace = Trace::make($from);
 
     expect($trace->count())->toEqual(count($expected))
@@ -71,7 +71,7 @@ it('makes from trace array', function ($from, $expected, $withoutEmpty) {
         ->and($trace->jsonSerialize())->toEqual($expected);
 })->with('traces');
 
-it('makes from array of frames', function ($from) {
+it('makes from array of frames', function (array $from) {
     $trace = Trace::make($from);
 
     expect($trace->count())->toEqual(count($from))
@@ -80,7 +80,7 @@ it('makes from array of frames', function ($from) {
         ->and($trace->jsonSerialize())->toEqual($from);
 })->with('frame arrays');
 
-it('makes from array of empty frames', function ($from) {
+it('makes from array of empty frames', function (array $from) {
     $trace = Trace::make($from);
 
     expect($trace->count())->toEqual(count($from))
@@ -111,7 +111,7 @@ it('makes from an empty trace', function (Trace $from) {
         ->and($trace->jsonSerialize())->toEqual($from->jsonSerialize());
 })->with('empty trace objects');
 
-it('excludes empty frames with frames method', function ($from, $expected, $withoutEmpty) {
+it('excludes empty frames with frames method', function (array $from, array $expected, array $withoutEmpty) {
     $trace = Trace::make($from);
 
     expect($trace->frames())->toEqual($withoutEmpty)
@@ -143,25 +143,36 @@ it('only allows array read access to properties', function ($offset, $exists, $v
         })->toThrow(\RuntimeException::class, $message)
         ->and(isset($trace[$offset]))->toEqual($exists);
 })->with([
-    'first index' => [0, true, new Frame('foo.php', 'foo', 'foo', 42, (object) [])],
-    'second index' => [1, true, new Frame()],
-    'last index' => [2, true, new Frame('bing.php', 'bang', 'boom', 99, new Frame())],
+    'first index' => fn () => [0, true, new Frame('foo.php', 'foo', 'foo', 42, (object) [])],
+    'second index' => fn () => [1, true, new Frame()],
+    'last index' => fn () => [2, true, new Frame('bing.php', 'bang', 'boom', 99, new Frame())],
     'text index' => ['foo', false, null],
-    'random positive index' => [random_int(3, PHP_INT_MAX), false, null],
-    'random negative index' => [random_int(PHP_INT_MIN, -1), false, null],
+    'random positive index' => fn () => [random_int(3, PHP_INT_MAX), false, null],
+    'random negative index' => fn () => [random_int(PHP_INT_MIN, -1), false, null],
 ]);
 
 it('reindexes frames to sequential numeric keys', function () {
     $frames = [
-        new Frame('foo.php', 'foo', 'foo', 42, (object) []),
-        new Frame('bar.php', 'bar', 'bar', 10, new Frame()),
-        new Frame('baz.php', 'baz', 'baz', 20, new Frame()),
+        'foo' => new Frame('foo.php', 'foo', 'foo', 42, (object) []),
+        'empty' => new Frame(),
+        'bar' => new Frame('bar.php', 'bar', 'bar', 10, new Frame()),
+        'empty-2' => new Frame(),
+        'baz' => new Frame('baz.php', 'baz', 'baz', 20, new Frame()),
     ];
-    
+
     $trace = new Trace($frames);
-    
-    expect($trace->frames[0])->toEqual($frames[0])
-        ->and($trace->frames[1])->toEqual($frames[1])
-        ->and($trace->frames[2])->toEqual($frames[2])
-        ->and(array_keys($trace->frames))->toEqual([0, 1, 2]);
+
+    expect($trace->frames[0])->toEqual($frames['foo'])
+        ->and($trace->frames[1])->toEqual($frames['empty'])
+        ->and($trace->frames[2])->toEqual($frames['bar'])
+        ->and($trace->frames[3])->toEqual($frames['empty-2'])
+        ->and($trace->frames[4])->toEqual($frames['baz'])
+        ->and(array_keys($trace->frames))->toEqual([0, 1, 2, 3, 4])
+        ->and($trace->frames())->toHaveCount(3)
+        ->and(array_keys($trace->frames()))->toEqual([0, 1, 2])
+        ->and($trace->frames()[0])->toEqual($frames['foo'])
+        ->and($trace->frames()[1])->toEqual($frames['bar'])
+        ->and($trace->frames()[2])->toEqual($frames['baz'])
+        ->and($trace->frames(true))->toHaveCount(5)
+        ->and($trace->frames(true))->toBe($trace->frames);
 });

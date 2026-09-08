@@ -10,7 +10,8 @@
         "squizlabs/php_codesniffer": "^4.0",
         "phpstan/phpstan": "^2.0",
         "friendsofphp/php-cs-fixer": "^3.0",
-        "mockery/mockery": "^1.6"
+        "mockery/mockery": "^1.6",
+        "jasonmccreary/double": "^0.6.1"
     },
     "license": "MIT",
     "authors": [

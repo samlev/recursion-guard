@@ -47,7 +47,7 @@ it('only allows array read access to properties', function ($offset, $set, $exis
     'instance method' => ['jsonSerialize', 'bing', false, null],
     'first index' => [0, 1, false, null],
     'last index' => [5, 6, false, null],
-    'random index' => [random_int(PHP_INT_MIN, PHP_INT_MAX), 42, false, null],
+    'random index' => fn () => [random_int(PHP_INT_MIN, PHP_INT_MAX), 42, false, null],
 ]);
 
 it('reports default values as empty', function (array $params) {

@@ -7,7 +7,6 @@ namespace RecursionGuard\Data;
 use ArrayAccess;
 use JsonSerializable;
 use RecursionGuard\Helper\Obj;
-use RecursionGuard\Support\ArrayWritesForbidden;
 
 /**
  * @template TArrayKey of array-key
@@ -17,8 +16,6 @@ use RecursionGuard\Support\ArrayWritesForbidden;
  */
 abstract readonly class BaseData implements ArrayAccess, JsonSerializable
 {
-    use ArrayWritesForbidden;
-
     public function empty(): bool
     {
         $vars = get_object_vars($this);
@@ -57,6 +54,22 @@ abstract readonly class BaseData implements ArrayAccess, JsonSerializable
     public function offsetGet(mixed $offset): mixed
     {
         return $this->offsetExists($offset) ? $this->$offset : null;
+    }
+
+    /**
+     * @param int|string $offset
+     */
+    final public function offsetSet(mixed $offset, mixed $value): never
+    {
+        throw new \RuntimeException(static::class . ' is read-only');
+    }
+
+    /**
+     * @param int|string $offset
+     */
+    final public function offsetUnset(mixed $offset): never
+    {
+        throw new \RuntimeException(static::class . ' is read-only');
     }
 
     /**
