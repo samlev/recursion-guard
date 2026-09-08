@@ -19,6 +19,8 @@ class Obj
 
         $class = new \ReflectionClass($class);
 
+        $constructor = $class->getConstructor();
+
         foreach ($class->getProperties() as $property) {
             if ($property->isStatic()) {
                 continue;
@@ -31,16 +33,17 @@ class Obj
             if ($property->hasDefaultValue()) {
                 $defaults[$property->getName()] = $property->getDefaultValue();
             } elseif ($property->isPromoted()) {
+                /** @var \ReflectionMethod $constructor */
                 $parameter = array_values(
                     array_filter(
-                        $class->getConstructor()?->getParameters() ?? [],
+                        $constructor->getParameters(),
                         fn (\ReflectionParameter $parameter) => $parameter->getName() === $property->getName(),
                     )
-                )[0] ?? null;
+                )[0];
 
-                if ($parameter?->isDefaultValueAvailable()) {
+                if ($parameter->isDefaultValueAvailable()) {
                     $defaults[$property->getName()] = $parameter->getDefaultValue();
-                } elseif ($parameter?->allowsNull()) {
+                } elseif ($parameter->allowsNull()) {
                     $defaults[$property->getName()] = null;
                 }
             }

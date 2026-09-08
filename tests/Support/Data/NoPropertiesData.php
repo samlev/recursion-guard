@@ -6,7 +6,7 @@ namespace Tests\Support\Data;
 
 use RecursionGuard\Data\BaseData;
 
-readonly class NoPropertiesData extends BaseData
+final readonly class NoPropertiesData extends BaseData
 {
     //
 }

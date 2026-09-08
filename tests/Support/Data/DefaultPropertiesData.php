@@ -7,7 +7,7 @@ namespace Tests\Support\Data;
 use RecursionGuard\Data\BaseData;
 use stdClass;
 
-readonly class DefaultPropertiesData extends BaseData
+final readonly class DefaultPropertiesData extends BaseData
 {
     public function __construct(
         public null $null = null,

@@ -3,35 +3,23 @@
 declare(strict_types=1);
 
 use RecursionGuard\Data\BaseData;
-use Tests\Support\Data\NoPropertiesData;
-use Tests\Support\Data\NullableProperties;
-use Tests\Support\Data\NullablePropertiesWithDefaults;
-use Tests\Support\Data\PrivatePropertiesWithDefaults;
-use Tests\Support\Data\PromotedMixedProperties;
-use Tests\Support\Data\PromotedProperties;
 use Tests\Support\Data\DefaultPropertiesData;
-use Tests\Support\Data\ProtectedPropertiesWithDefaults;
-use Tests\Support\Data\PublicPropertiesWithDefaults;
-use Tests\Support\Data\PublicPropertiesWithoutDefaults;
-use Tests\Support\Data\ReadonlyClass;
-use Tests\Support\Data\ReadonlyNullableClass;
-use Tests\Support\Data\ReadonlyPromotedProperties;
-use Tests\Support\Data\StaticProperties;
+use Tests\Support\Data\NoPropertiesData;
 
 covers(BaseData::class);
 
 it('checks if an object is empty', function (BaseData $object, bool $empty) {
     expect($object->empty())->toBe($empty);
 })->with([
-    'no properties' => [
+    'no properties' => fn () => [
         new NoPropertiesData(),
         true,
     ],
-    'default properties' => [
+    'default properties' => fn () => [
         new DefaultPropertiesData(),
         true,
     ],
-    'explicit but default properties' => [
+    'explicit but default properties' => fn () => [
         new DefaultPropertiesData(
             null: null,
             string: 'foo',
@@ -42,14 +30,14 @@ it('checks if an object is empty', function (BaseData $object, bool $empty) {
         ),
         true,
     ],
-    'some non-default properties' => [
+    'some non-default properties' => fn () => [
         new DefaultPropertiesData(
             string: 'bar',
             int: 99,
         ),
         false,
     ],
-    'empty properties' => [
+    'empty properties' => fn () => [
         new DefaultPropertiesData(
             null: null,
             string: '',
@@ -60,13 +48,13 @@ it('checks if an object is empty', function (BaseData $object, bool $empty) {
         ),
         false,
     ],
-    'object property with different type but equal value' => [
+    'object property with different type but equal value' => fn () => [
         new DefaultPropertiesData(
             object: (object) ['key' => 'value'],
         ),
         false,
     ],
-    'all properties non-empty' => [
+    'all properties non-empty' => fn () => [
         new DefaultPropertiesData(
             null: null,
             string: 'bar',
@@ -79,57 +67,54 @@ it('checks if an object is empty', function (BaseData $object, bool $empty) {
     ],
 ]);
 
-it('uses public properties as offsets', function (DefaultPropertiesData $object) {
+it('uses public properties as offsets', function (DefaultPropertiesData $object, array $expected) {
     expect($object->offsetExists('null'))->toBeTrue()
+        ->and($object->offsetGet('null'))->toBe($expected['null'])
         ->and($object->offsetExists('string'))->toBeTrue()
-        ->and($object->offsetExists('int'))->toBeTrue()
-        ->and($object->offsetExists('bool'))->toBeTrue()
-        ->and($object->offsetExists('array'))->toBeTrue()
-        ->and($object->offsetExists('object'))->toBeTrue()
-        ->and($object->offsetExists(0))->toBeFalse()
-        ->and($object->offsetExists(5))->toBeFalse()
-        ->and($object->offsetExists(null))->toBeFalse()
-        ->and($object->offsetExists('unknown'))->toBeFalse()
-        ->and($object->offsetExists('foo'))->toBeFalse()
-        ->and($object->offsetExists('bar'))->toBeFalse()
-        ->and(isset($object['null']))->toBeTrue()
-        ->and(isset($object['string']))->toBeTrue()
-        ->and(isset($object['int']))->toBeTrue()
-        ->and(isset($object['bool']))->toBeTrue()
-        ->and(isset($object['array']))->toBeTrue()
-        ->and(isset($object['object']))->toBeTrue()
-        ->and(isset($object[0]))->toBeFalse()
-        ->and(isset($object[5]))->toBeFalse()
-        ->and(isset($object[null]))->toBeFalse()
-        ->and(isset($object['unknown']))->toBeFalse()
-        ->and(isset($object['foo']))->toBeFalse()
-        ->and(isset($object['bar']))->toBeFalse();
-})->with('objects');
-
-it('gets public properties as offsets', function (DefaultPropertiesData $object, array $expected) {
-    expect($object->offsetGet('null'))->toBe($expected['null'])
         ->and($object->offsetGet('string'))->toBe($expected['string'])
+        ->and($object->offsetExists('int'))->toBeTrue()
         ->and($object->offsetGet('int'))->toBe($expected['int'])
+        ->and($object->offsetExists('bool'))->toBeTrue()
         ->and($object->offsetGet('bool'))->toBe($expected['bool'])
+        ->and($object->offsetExists('array'))->toBeTrue()
         ->and($object->offsetGet('array'))->toEqual($expected['array'])
+        ->and($object->offsetExists('object'))->toBeTrue()
         ->and($object->offsetGet('object'))->toEqual($expected['object'])
+        ->and($object->offsetExists(0))->toBeFalse()
         ->and($object->offsetGet(0))->toBeNull()
+        ->and($object->offsetExists(5))->toBeFalse()
         ->and($object->offsetGet(5))->toBeNull()
+        ->and($object->offsetExists(null))->toBeFalse()
         ->and($object->offsetGet(null))->toBeNull()
+        ->and($object->offsetExists('unknown'))->toBeFalse()
         ->and($object->offsetGet('unknown'))->toBeNull()
+        ->and($object->offsetExists('foo'))->toBeFalse()
         ->and($object->offsetGet('foo'))->toBeNull()
+        ->and($object->offsetExists('bar'))->toBeFalse()
         ->and($object->offsetGet('bar'))->toBeNull()
+        ->and(isset($object['null']))->toBeTrue()
         ->and($object['null'])->toBe($expected['null'])
+        ->and(isset($object['string']))->toBeTrue()
         ->and($object['string'])->toBe($expected['string'])
+        ->and(isset($object['int']))->toBeTrue()
         ->and($object['int'])->toBe($expected['int'])
+        ->and(isset($object['bool']))->toBeTrue()
         ->and($object['bool'])->toBe($expected['bool'])
+        ->and(isset($object['array']))->toBeTrue()
         ->and($object['array'])->toEqual($expected['array'])
+        ->and(isset($object['object']))->toBeTrue()
         ->and($object['object'])->toEqual($expected['object'])
+        ->and(isset($object[0]))->toBeFalse()
         ->and($object[0])->toBeNull()
+        ->and(isset($object[5]))->toBeFalse()
         ->and($object[5])->toBeNull()
+        ->and(isset($object[null]))->toBeFalse()
         ->and($object[null])->toBeNull()
+        ->and(isset($object['unknown']))->toBeFalse()
         ->and($object['unknown'])->toBeNull()
+        ->and(isset($object['foo']))->toBeFalse()
         ->and($object['foo'])->toBeNull()
+        ->and(isset($object['foo']))->toBeFalse()
         ->and($object['bar'])->toBeNull();
 })->with('objects');
 
@@ -141,15 +126,15 @@ it('converts public properties to jsonable array', function (DefaultPropertiesDa
 })->with('objects');
 
 dataset('objects', [
-    'defaults' => [
+    'defaults' => fn () => [
         new DefaultPropertiesData(),
         ['null' => null, 'string' => 'foo', 'int' => 42, 'bool' => true, 'array' => [1, 2, 3], 'object' => new stdClass()],
     ],
-    'empty properties' => [
+    'empty properties' => fn () => [
         new DefaultPropertiesData(string: '', int: 0, bool: false, array: [], object: new stdClass()),
         ['null' => null, 'string' => '', 'int' => 0, 'bool' => false, 'array' => [], 'object' => new stdClass()],
     ],
-    'some changes' => [
+    'some changes' => fn () => [
         new DefaultPropertiesData(string: 'bar', int: 99, array: ['foo' => 'bar']),
         [
             'null' => null,
@@ -160,7 +145,7 @@ dataset('objects', [
             'object' => new stdClass(),
         ],
     ],
-    'all changes' => [
+    'all changes' => fn () => [
         new DefaultPropertiesData(
             string: 'baz',
             int: 86,
