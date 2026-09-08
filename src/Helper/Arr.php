@@ -20,11 +20,9 @@ class Arr
         return array_intersect_key(
             $array,
             array_flip(
-                array_unique(
-                    array_filter(
-                        array_values($keys),
-                        fn ($v): bool => is_int($v) || is_string($v),
-                    )
+                array_filter(
+                    $keys,
+                    fn ($v): bool => is_int($v) || is_string($v),
                 )
             )
         );
