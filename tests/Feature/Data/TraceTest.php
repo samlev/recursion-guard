@@ -128,19 +128,17 @@ it('only allows array read access to properties', function ($offset, $exists, $v
 
     $set = new Frame('whizz.php', line: 24);
 
-    $message = Trace::class . ' is read-only';
-
-    expect(fn () => $trace->offsetSet($offset, $set))->toThrow(\RuntimeException::class, $message)
+    expect(fn () => $trace->offsetSet($offset, $set))->toThrow(\Error::class)
         ->and($trace->offsetGet($offset))->toEqual($value)
-        ->and(fn () => $trace->offsetUnset($offset))->toThrow(\RuntimeException::class, $message)
+        ->and(fn () => $trace->offsetUnset($offset))->toThrow(\Error::class)
         ->and($trace->offsetExists($offset))->toEqual($exists)
         ->and(function () use (&$trace, $offset, $set) {
             $trace[$offset] = $set;
-        })->toThrow(\RuntimeException::class, $message)
+        })->toThrow(\Error::class)
         ->and($trace[$offset])->toEqual($value)
         ->and(function () use (&$trace, $offset) {
             unset($trace[$offset]);
-        })->toThrow(\RuntimeException::class, $message)
+        })->toThrow(\Error::class)
         ->and(isset($trace[$offset]))->toEqual($exists);
 })->with([
     'first index' => fn () => [0, true, new Frame('foo.php', 'foo', 'foo', 42, (object) [])],

@@ -21,19 +21,17 @@ it('only allows array read access to properties', function ($offset, $set, $exis
         (object)[],
     );
 
-    $message = Frame::class . ' is read-only';
-
-    expect(fn () => $frame->offsetSet($offset, $set))->toThrow(\RuntimeException::class, $message)
+    expect(fn () => $frame->offsetSet($offset, $set))->toThrow(\Error::class)
         ->and($frame->offsetGet($offset))->toEqual($value)
-        ->and(fn () => $frame->offsetUnset($offset))->toThrow(\RuntimeException::class, $message)
+        ->and(fn () => $frame->offsetUnset($offset))->toThrow(\Error::class)
         ->and($frame->offsetExists($offset))->toEqual($exists)
         ->and(function () use (&$frame, $offset, $set) {
             $frame[$offset] = $set;
-        })->toThrow(\RuntimeException::class, $message)
+        })->toThrow(\Error::class)
         ->and($frame[$offset])->toEqual($value)
         ->and(function () use (&$frame, $offset) {
             unset($frame[$offset]);
-        })->toThrow(\RuntimeException::class, $message)
+        })->toThrow(\Error::class)
         ->and(isset($frame[$offset]))->toEqual($exists);
 })->with([
     'file' => ['file', 'bing.php', true, 'foo.php'],

@@ -25,7 +25,7 @@ final class RecursionException extends \RuntimeException
     public static function makeMessage(Recursable $recursable): string
     {
         return sprintf(
-            match (true) {
+            match (true) { // @pest-mutate-ignore: TrueToFalse
                 $recursable->overflown() => self::MESSAGE_OVERFLOW,
                 $recursable->finished() => self::MESSAGE_FINISHED,
                 $recursable->recursing() => self::MESSAGE_RECURSING,

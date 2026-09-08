@@ -12,8 +12,10 @@ readonly class TraceStub extends Trace
 {
     public static function make(Trace|array $frames = []): static
     {
-        Spy::instance()->call(__METHOD__, [$frames]);
-
-        return parent::make($frames);
+        try {
+            return parent::make($frames);
+        } finally {
+            Spy::instance()->call(__METHOD__, [$frames]);
+        }
     }
 }

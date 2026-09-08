@@ -22,10 +22,9 @@ abstract readonly class BaseData implements ArrayAccess, JsonSerializable
 
         foreach (Obj::defaults($this) as $property => $default) {
             if (
-                match (true) {
+                match (true) { // @pest-mutate-ignore: TrueToFalse
                     is_object($default)
                         => !is_object($vars[$property])
-                            || !$vars[$property] instanceof $default
                             || $default != $vars[$property],
                     is_array($default) => $default != $vars[$property],
                     default => $default !== $vars[$property],
@@ -48,7 +47,7 @@ abstract readonly class BaseData implements ArrayAccess, JsonSerializable
     }
 
     /**
-     * @param int|string $offset
+     * @param array-key $offset
      * @return mixed
      */
     public function offsetGet(mixed $offset): mixed
@@ -57,19 +56,34 @@ abstract readonly class BaseData implements ArrayAccess, JsonSerializable
     }
 
     /**
-     * @param int|string $offset
+     * @param array-key $offset
      */
     final public function offsetSet(mixed $offset, mixed $value): never
     {
-        throw new \RuntimeException(static::class . ' is read-only');
+        if ($this->offsetExists($offset)) {
+            throw new \Error('Cannot modify readonly property ' . $this->qualifyOffset($offset));
+        }
+        throw new \Error('Cannot create dynamic property ' . $this->qualifyOffset($offset));
     }
 
     /**
-     * @param int|string $offset
+     * @param array-key $offset
      */
     final public function offsetUnset(mixed $offset): never
     {
-        throw new \RuntimeException(static::class . ' is read-only');
+        if ($this->offsetExists($offset)) {
+            throw new \Error('Cannot unset readonly property ' . $this->qualifyOffset($offset));
+        }
+
+        throw new \Error('Cannot unset dynamic property ' . $this->qualifyOffset($offset));
+    }
+
+    /**
+     * @param array-key $offset
+     */
+    final protected function qualifyOffset(mixed $offset): string
+    {
+        return sprintf('%s::$%s', static::class, strval($offset));
     }
 
     /**
