@@ -1,5 +1,19 @@
 # Release Notes
 
+## v1.2.0 - 2026-09-08
+
+### What's Changed
+
+* Code consolidation by [@samlev](https://github.com/samlev) in https://github.com/samlev/recursion-guard/pull/3
+
+### Breaking Changes
+
+* `Recursable::$signature`,`Recursable::$hash`, and `Recursable::$callback` are no longer public.
+* All properties on `Recursable` are now available to read as methods (e.g. `$recursable->signature()`).
+* Removed `ArrayWritesForbidden` and `WithRecursable` traits as they were each only used by a single class.
+
+**Full Changelog**: https://github.com/samlev/recursion-guard/compare/v1.1.0...v1.2.0
+
 ## v1.1.0 - 2026-09-07
 
 ### What's Changed
