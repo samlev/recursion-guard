@@ -123,7 +123,7 @@ class Recurser
     public function release(Recursable $target): void
     {
         $stack = $this->getStack($target->object() ?? $this->defaultScope);
-        unset($stack[$target->hash]);
+        unset($stack[$target->hash()]);
         $this->setStack($target->object() ?? $this->defaultScope, $stack);
     }
 
@@ -135,7 +135,7 @@ class Recurser
      */
     public function find(Recursable $target): ?Recursable
     {
-        return $this->getStack($target->object() ?? $this->defaultScope)[$target->hash] ?? null;
+        return $this->getStack($target->object() ?? $this->defaultScope)[$target->hash()] ?? null;
     }
 
     /**
@@ -173,9 +173,9 @@ class Recurser
     protected function setValue(Recursable $target): Recursable
     {
         $stack = $this->getStack($target->object() ?? $this->defaultScope);
-        $stack[$target->hash] = $target;
+        $stack[$target->hash()] = $target;
         $this->setStack($target->object() ?? $this->defaultScope, $stack);
 
-        return $stack[$target->hash];
+        return $stack[$target->hash()];
     }
 }

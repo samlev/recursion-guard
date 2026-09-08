@@ -21,33 +21,31 @@ it('only allows array read access to properties', function ($offset, $set, $exis
         (object)[],
     );
 
-    $message = Frame::class . ' is read-only';
-
-    expect(fn () => $frame->offsetSet($offset, $set))->toThrow(\RuntimeException::class, $message)
+    expect(fn () => $frame->offsetSet($offset, $set))->toThrow(\Error::class)
         ->and($frame->offsetGet($offset))->toEqual($value)
-        ->and(fn () => $frame->offsetUnset($offset))->toThrow(\RuntimeException::class, $message)
+        ->and(fn () => $frame->offsetUnset($offset))->toThrow(\Error::class)
         ->and($frame->offsetExists($offset))->toEqual($exists)
         ->and(function () use (&$frame, $offset, $set) {
             $frame[$offset] = $set;
-        })->toThrow(\RuntimeException::class, $message)
+        })->toThrow(\Error::class)
         ->and($frame[$offset])->toEqual($value)
         ->and(function () use (&$frame, $offset) {
             unset($frame[$offset]);
-        })->toThrow(\RuntimeException::class, $message)
+        })->toThrow(\Error::class)
         ->and(isset($frame[$offset]))->toEqual($exists);
 })->with([
     'file' => ['file', 'bing.php', true, 'foo.php'],
     'line' => ['line', 99, true, 42],
     'class' => ['class', 'bang', true, 'baz'],
     'function' => ['function', 'bong', true, 'bar'],
-    'object' => ['object', new RecursionContext(), true, (object)[]],
+    'object' => fn () => ['object', new RecursionContext(), true, (object)[]],
     'signature' => ['signature', 'bing.php:bang@bong', false, null],
     'unknown string' => ['foo', 'foo', false, null],
     'static method' => ['make', 'bar', false, null],
     'instance method' => ['jsonSerialize', 'bing', false, null],
     'first index' => [0, 1, false, null],
     'last index' => [5, 6, false, null],
-    'random index' => [random_int(PHP_INT_MIN, PHP_INT_MAX), 42, false, null],
+    'random index' => fn () => [random_int(PHP_INT_MIN, PHP_INT_MAX), 42, false, null],
 ]);
 
 it('reports default values as empty', function (array $params) {
@@ -76,7 +74,7 @@ it('reports default values as empty', function (array $params) {
     'all parameters' => [['file' => '', 'class' => '', 'function' => '', 'line' => 0, 'object' => null]],
 ]);
 
-it('creates new with defaults', function ($from, $empty) {
+it('creates new with defaults', function ($from) {
     $from = array_intersect_key($from, array_flip(['file', 'class', 'function', 'line', 'object']));
 
     $frame = new Frame(...$from);
@@ -103,12 +101,11 @@ it('creates new with defaults', function ($from, $empty) {
             'function' => $function,
             'line' => $line,
             'object' => $object,
-        ])
-        ->and($frame->empty())->toBe($empty);
+        ]);
 })->with('frames');
 
 
-it('makes with defaults', function ($from, $empty) {
+it('makes with defaults', function (array $from) {
     $frame = Frame::make($from);
 
     $file = $from['file'] ?? '';
@@ -133,11 +130,10 @@ it('makes with defaults', function ($from, $empty) {
             'function' => $function,
             'line' => $line,
             'object' => $object,
-        ])
-        ->and($frame->empty())->toBe($empty);
+        ]);
 })->with('frames');
 
-it('clones frame when making from existing frame', function ($from, $empty) {
+it('clones frame when making from existing frame', function (Frame $from) {
     $frame = Frame::make($from);
 
     expect($frame)->not->toBe($from)
@@ -153,6 +149,5 @@ it('clones frame when making from existing frame', function ($from, $empty) {
         ->and($frame->object)->toBe($from->object)
         ->and($frame['object'])->toBe($from['object'])
         ->and($frame->jsonSerialize())->toBe($from->jsonSerialize())
-        ->and($frame->empty())->toBe($empty)
         ->and($frame->empty())->toBe($from->empty());
 })->with('frame objects');

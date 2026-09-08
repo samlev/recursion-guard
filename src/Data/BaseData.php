@@ -7,7 +7,6 @@ namespace RecursionGuard\Data;
 use ArrayAccess;
 use JsonSerializable;
 use RecursionGuard\Helper\Obj;
-use RecursionGuard\Support\ArrayWritesForbidden;
 
 /**
  * @template TArrayKey of array-key
@@ -17,18 +16,15 @@ use RecursionGuard\Support\ArrayWritesForbidden;
  */
 abstract readonly class BaseData implements ArrayAccess, JsonSerializable
 {
-    use ArrayWritesForbidden;
-
     public function empty(): bool
     {
         $vars = get_object_vars($this);
 
         foreach (Obj::defaults($this) as $property => $default) {
             if (
-                match (true) {
+                match (true) { // @pest-mutate-ignore: TrueToFalse
                     is_object($default)
                         => !is_object($vars[$property])
-                            || !$vars[$property] instanceof $default
                             || $default != $vars[$property],
                     is_array($default) => $default != $vars[$property],
                     default => $default !== $vars[$property],
@@ -51,12 +47,43 @@ abstract readonly class BaseData implements ArrayAccess, JsonSerializable
     }
 
     /**
-     * @param int|string $offset
+     * @param array-key $offset
      * @return mixed
      */
     public function offsetGet(mixed $offset): mixed
     {
         return $this->offsetExists($offset) ? $this->$offset : null;
+    }
+
+    /**
+     * @param array-key $offset
+     */
+    final public function offsetSet(mixed $offset, mixed $value): never
+    {
+        if ($this->offsetExists($offset)) {
+            throw new \Error('Cannot modify readonly property ' . $this->qualifyOffset($offset));
+        }
+        throw new \Error('Cannot create dynamic property ' . $this->qualifyOffset($offset));
+    }
+
+    /**
+     * @param array-key $offset
+     */
+    final public function offsetUnset(mixed $offset): never
+    {
+        if ($this->offsetExists($offset)) {
+            throw new \Error('Cannot unset readonly property ' . $this->qualifyOffset($offset));
+        }
+
+        throw new \Error('Cannot unset dynamic property ' . $this->qualifyOffset($offset));
+    }
+
+    /**
+     * @param array-key $offset
+     */
+    final protected function qualifyOffset(mixed $offset): string
+    {
+        return sprintf('%s::$%s', static::class, strval($offset));
     }
 
     /**

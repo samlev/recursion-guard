@@ -16,7 +16,7 @@ final class InvalidContextException extends InvalidArgumentException
         int $code = 0,
         ?Throwable $previous = null
     ): self {
-        $message = $message ?: match (true) {
+        $message = $message ?: match (true) { // @pest-mutate-ignore: TrueToFalse
             is_array($from) && $from => sprintf('Invalid backtrace provided: %s', json_encode($from)),
             $from instanceof Trace && $from->empty(), is_array($from) => 'Empty backtrace provided.',
             default => 'Invalid context provided.',

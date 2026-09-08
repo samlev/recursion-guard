@@ -11,45 +11,39 @@ use RecursionGuard\Data\Frame;
  * ]
  */
 dataset('frames', [
-    'none' => [[], true],
-    'file' => [['file' => 'foo.php'], false],
-    'line' => [['line' => 42], false],
-    'function' => [['function' => 'foo'], false],
-    'class' => [['class' => 'foo'], false],
-    'object' => [['object' => (object)[]], false],
-    'all' => [
-        ['file' => 'foo.php', 'line' => 42, 'function' => 'foo', 'class' => 'foo', 'object' => (object)[]],
-        false
-    ],
-    'differently ordered keys' => [
-        ['object' => (object)[], 'file' => 'foo.php', 'function' => 'foo', 'line' => 42, 'class' => 'foo'],
-        false
-    ],
-    'empty values' => [['file' => '', 'line' => 0, 'function' => '', 'class' => '', 'object' => null], true],
-    'integer keys' => [
-        [
-            0 => 'foo.php',
-            1 => 42,
-            2 => 'foo',
-            3 => 'foo',
-            4 => (object)[],
-        ],
-        true,
-    ],
-    'type' => [['type' => '->'], true],
-    'unknown' => [['unknown' => 'foo'], true],
-    'full trace frame' => [
-        [
-            'file' => 'foo.php',
-            'line' => 42,
-            'class' => 'foo',
-            'function' => 'foo',
-            'object' => (object)[],
-            'type' => '->',
-            'args' => [],
-        ],
-        false
-    ],
+    'none' => [[]],
+    'file' => [['file' => 'foo.php']],
+    'line' => [['line' => 42]],
+    'function' => [['function' => 'foo']],
+    'class' => [['class' => 'foo']],
+    'object' => [['object' => (object)[]]],
+    'all' => [['file' => 'foo.php', 'line' => 42, 'function' => 'foo', 'class' => 'foo', 'object' => (object)[]]],
+    'differently ordered keys' => [[
+        'object' => (object)[],
+        'file' => 'foo.php',
+        'function' => 'foo',
+        'line' => 42,
+        'class' => 'foo',
+    ]],
+    'empty values' => [['file' => '', 'line' => 0, 'function' => '', 'class' => '', 'object' => null]],
+    'integer keys' => [[
+        0 => 'foo.php',
+        1 => 42,
+        2 => 'foo',
+        3 => 'foo',
+        4 => (object)[],
+    ]],
+    'type' => [['type' => '->']],
+    'unknown' => [['unknown' => 'foo']],
+    'full trace frame' => [[
+        'file' => 'foo.php',
+        'line' => 42,
+        'class' => 'foo',
+        'function' => 'foo',
+        'object' => (object)[],
+        'type' => '->',
+        'args' => [],
+    ]],
 ]);
 
 /*
@@ -59,20 +53,14 @@ dataset('frames', [
  * ]
  */
 dataset('frame objects', [
-    'empty' => [new Frame(), true],
-    'file' => [new Frame('foo.php'), false],
-    'class' => [new Frame(class: 'foo'), false],
-    'function' => [new Frame(function: 'foo'), false],
-    'line' => [new Frame(line: 42), false],
-    'object' => [new Frame(object: (object)[]), false],
-    'all' => [
-        new Frame('foo.php', 'foo', 'foo', 42, (object)[]),
-        false
-    ],
-    'file function and object' => [
-        new Frame('foo.php', function: 'foo', object: (object)[]),
-        false
-    ],
+    'empty' => fn () => new Frame(),
+    'file' => fn () => new Frame('foo.php'),
+    'class' => fn () => new Frame(class: 'foo'),
+    'function' => fn () => new Frame(function: 'foo'),
+    'line' => fn () => new Frame(line: 42),
+    'object' => fn () => new Frame(object: (object)[]),
+    'all' => fn () => new Frame('foo.php', 'foo', 'foo', 42, (object)[]),
+    'file function and object' => fn () => new Frame('foo.php', function: 'foo', object: (object)[]),
 ]);
 
 /*
@@ -82,30 +70,24 @@ dataset('frame objects', [
  * ]
  */
 dataset('frame arrays', [
-    'one frame' => [
-        [new Frame('foo.php', 'foo', 'foo', 42, (object) [])],
+    'one frame' => fn () => [
+        new Frame('foo.php', 'foo', 'foo', 42, (object) []),
     ],
-    'two frames' => [
-        [
-            new Frame('foo.php', 'foo', 'foo', 42, (object) []),
-            new Frame('bing.php', 'bang', 'boom', 99, new Frame()),
-        ],
+    'two frames' => fn () => [
+        new Frame('foo.php', 'foo', 'foo', 42, (object) []),
+        new Frame('bing.php', 'bang', 'boom', 99, new Frame()),
     ],
-    'three frames' => [
-        [
-            new Frame('foo.php', 'foo', 'foo', 42, (object) []),
-            new Frame('bing.php', 'bang', 'boom', 99, new Frame()),
-            new Frame('whizz.php', line: 24),
-        ],
+    'three frames' => fn () => [
+        new Frame('foo.php', 'foo', 'foo', 42, (object) []),
+        new Frame('bing.php', 'bang', 'boom', 99, new Frame()),
+        new Frame('whizz.php', line: 24),
     ],
-    'mixed frames' => [
-        [
-            new Frame('foo.php', 'foo', 'foo', 42, (object) []),
-            new Frame(),
-            new Frame('bing.php', 'bang', 'boom', 99, new Frame()),
-            new Frame(),
-            new Frame('whizz.php', line: 24),
-        ],
+    'mixed frames' => fn () => [
+        new Frame('foo.php', 'foo', 'foo', 42, (object) []),
+        new Frame(),
+        new Frame('bing.php', 'bang', 'boom', 99, new Frame()),
+        new Frame(),
+        new Frame('whizz.php', line: 24),
     ],
 ]);
 
@@ -118,11 +100,9 @@ dataset('frame arrays', [
  */
 dataset('empty frame arrays', [
     'empty' => [[]],
-    'empty frames' => [
-        [
-            new Frame(),
-            new Frame(),
-            new Frame(),
-        ],
+    'empty frames' => fn () => [
+        new Frame(),
+        new Frame(),
+        new Frame(),
     ],
 ]);

@@ -18,5 +18,5 @@ it('provides the expected fibonacci number', function ($for, $expected) {
     'eight' => [8, 21],
     'nine' => [9, 34],
     'ten' => [10, 55],
-    'negative' => [random_int(PHP_INT_MIN, -1), 0],
+    'negative' => fn () => [random_int(PHP_INT_MIN, -1), 0],
 ]);

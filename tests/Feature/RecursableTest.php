@@ -4,48 +4,44 @@ declare(strict_types=1);
 
 use RecursionGuard\Exception\RecursionException;
 use RecursionGuard\Recursable;
-use Tests\Support\Stubs\RecursableStub;
+use Tests\Support\SetsState;
 
-covers(Recursable::class);
-
-it('hashes signature', function () {
-    $signature = random_bytes(16);
-
-    expect(RecursableStub::expose_hashSignature($signature))
-        ->toBe(hash('xxh128', $signature));
-})->repeat(10);
+covers(Recursable::class, RecursionException::class);
 
 it('hashes signature on creation', function () {
     $signature = random_bytes(16);
 
     $recursable = new Recursable(fn () => null, signature: $signature);
 
-    expect($recursable->signature)->toBe($signature)
-        ->and($recursable->hash)->toBe(hash('xxh128', $signature));
+    expect($recursable->signature())->toBe($signature)
+        ->and($recursable->hash())->toBe(hash('xxh128', $signature));
 })->repeat(10);
 
-it('reports state correctly', function ($state, $started, $running, $recursing, $finished) {
-    $recursable = (new RecursableStub(fn () => null))->state(...$state);
+it('reports state correctly', function (bool $started, int $stackDepth) {
+    $recursable = (new class (fn () => null) extends Recursable {
+        use SetsState;
+    })->state(started: $started, stackDepth: $stackDepth);
 
     expect($recursable->started())->toBe($started)
-        ->and($recursable->running())->toBe($running)
-        ->and($recursable->recursing())->toBe($recursing)
-        ->and($recursable->finished())->toBe($finished)
-        ->and($recursable->expose_started)->toBe($started)
-        ->and($recursable->expose_stackDepth)->toBe($state['stackDepth'] ?? 0);
+        ->and($recursable->stackDepth())->toBe($stackDepth)
+        ->and($recursable->running())->toBe($started && $stackDepth >= 1)
+        ->and($recursable->recursing())->toBe($started && $stackDepth >= 2)
+        ->and($recursable->overflown())->toBe($stackDepth < 0)
+        ->and($recursable->finished())->toBe($started && $stackDepth === 0);
 })->with([
-    'standard' => [[], false, false, false, false],
-    'running' => [['started' => true, 'stackDepth' => 1], true, true, false, false],
-    'recursing' => [['started' => true, 'stackDepth' => 2], true, true, true, false],
-    'finished' => [['started' => true], true, false, false, true],
-    'impossible state: stack depth before starting' => [['stackDepth' => 1], false, false, false, false],
-    'impossible state: high depth' => [['started' => true, 'stackDepth' => 3], true, true, true, false],
+    'not started' => [false, 0],
+    'running' => [true, 1],
+    'recursing' => [true, 2],
+    'finished' => [true, 0],
+    'impossible state: stack depth before starting' => [false, 1],
+    'impossible state: high depth' => [true, 3],
+    'impossible state: negative depth' => [true, -1],
 ]);
 
 it('uses closure callable for callback', function (callable $callable) {
     $recursable = new Recursable($callable);
 
-    expect($recursable->callback)
+    expect($recursable->callback())
         ->toBeInstanceOf(\Closure::class)
         ->toBe($callable);
 })->with([
@@ -60,10 +56,10 @@ it('uses closure callable for callback', function (callable $callable) {
 it('wraps non-closure callable in closure for callback', function (callable $callable) {
     $recursable = new Recursable($callable);
     $expected = \Closure::fromCallable($callable);
-    $actualReflection = new ReflectionFunction($recursable->callback);
+    $actualReflection = new ReflectionFunction($recursable->callback());
     $expectedReflection = new ReflectionFunction($expected);
 
-    expect($recursable->callback)->toBeInstanceOf(\Closure::class)
+    expect($recursable->callback())->toBeInstanceOf(\Closure::class)
         ->and([
             $actualReflection->getClosureScopeClass()?->getName(),
             $actualReflection->getClosureThis(),
@@ -74,7 +70,7 @@ it('wraps non-closure callable in closure for callback', function (callable $cal
             $expectedReflection->getClosureThis(),
             $expectedReflection->getName(),
         ])
-        ->and($recursable->callback)
+        ->and($recursable->callback())
         ->toBeInstanceOf(\Closure::class)
         ->not->toBe($callable);
 })->with([
@@ -101,8 +97,8 @@ it('generates signature from callback function', function (callable $callable) {
     $line = $reflector->getStartLine() ?: 0;
     $signature = sprintf('%s:%s', $file, ($class ? ($class . '@') : '') . ($function ?: $line));
 
-    expect($recursable->signature)->toBe($signature)
-        ->and($recursable->hash)->toBe(hash('xxh128', $signature))
+    expect($recursable->signature())->toBe($signature)
+        ->and($recursable->hash())->toBe(hash('xxh128', $signature))
         ->and($recursable->object())->toBeNull();
 })->with([
     'short closure' => [fn () => 'foo'],
@@ -125,8 +121,8 @@ it('generates signature from callable array', function (callable $callable) {
     $line = $method->getStartLine() ?: 0;
     $signature = sprintf('%s:%s', $file, ($class ? ($class . '@') : '') . ($function ?: $line));
 
-    expect($recursable->signature)->toBe($signature)
-        ->and($recursable->hash)->toBe(hash('xxh128', $signature))
+    expect($recursable->signature())->toBe($signature)
+        ->and($recursable->hash())->toBe(hash('xxh128', $signature))
         ->and($recursable->object())->toBeNull();
 })->with([
     'static callable array' => [[\DateTime::class, 'createFromFormat']],
@@ -162,93 +158,65 @@ it('generates signature from invokable class', function () {
     $line = $method->getStartLine() ?: 0;
     $signature = sprintf('%s:%s', $file, ($class ? ($class . '@') : '') . ($function ?: $line));
 
-    expect($recursable->signature)->toBe($signature)
-        ->and($recursable->hash)->toBe(hash('xxh128', $signature))
+    expect($recursable->signature())->toBe($signature)
+        ->and($recursable->hash())->toBe(hash('xxh128', $signature))
         ->and($recursable->object())->toBeNull();
 });
 
-test('sets object only once', function () {
-    $recursable = new RecursableStub(fn () => null);
+it('sets object only once', function () {
+    $recursable = new Recursable(fn () => null);
     $one = (object) [];
     $two = (object) [];
 
-    expect($recursable->expose_object)->toBeNull()
-        ->and($recursable->object())->toBeNull();
-
-    $recursable->forObject(null);
-
-    expect($recursable->expose_object)->toBeNull()
-        ->and($recursable->object())->toBeNull();
-
-    $recursable->forObject($one);
-
-    expect($recursable->expose_object)->toBe($one)
-        ->and($recursable->object())->toBe($one);
-
-    $recursable->forObject(null);
-
-    expect($recursable->expose_object)->toBe($one)
-        ->and($recursable->object())->toBe($one);
-
-    $recursable->forObject($two);
-
-    expect($recursable->expose_object)->toBe($one)
-        ->and($recursable->object())->toBe($one);
+    expect($recursable->object())->toBeNull()
+        ->and($recursable->forObject(null)->object())->toBeNull()
+        ->and($recursable->forObject($one)->object())->toBe($one)
+        ->and($recursable->forObject(null)->object())->toBe($one)
+        ->and($recursable->forObject($two)->object())->toBe($one);
 });
 
-test('allows overriding return value', function () {
-    $recursable = new RecursableStub(fn () => null);
-    $two = fn () => 'bar';
+it('allows overriding return value', function () {
+    $recursable = new Recursable(fn () => null);
+    $callback = fn () => 'bar';
 
-    expect($recursable->expose_recurseWith)->toBeNull();
-
-    $recursable->andReturn('foo');
-
-    expect($recursable->expose_recurseWith)->toBe('foo');
-
-    $recursable->andReturn(null);
-
-    expect($recursable->expose_recurseWith)->toBeNull();
-
-    $recursable->andReturn($two);
-
-    expect($recursable->expose_recurseWith)->toBe($two);
-
-    $recursable->andReturn('bar');
-
-    expect($recursable->expose_recurseWith)->toBe('bar');
+    expect($recursable->recurseWith())->toBeNull()
+        ->and($recursable->andReturn('foo')->recurseWith())->toBe('foo')
+        ->and($recursable->andReturn(null)->recurseWith())->toBeNull()
+        ->and($recursable->andReturn($callback)->recurseWith())->toBe($callback)
+        ->and($recursable->andReturn('bar')->recurseWith())->toBe('bar');
 });
 
-test('resolves callback once', function ($method) {
-    $recursable = new RecursableStub(fn () => 'foo');
+it('resolves callback once', function ($method) {
+    $recursable = new Recursable(fn () => 'foo');
 
     expect($recursable->started())->toBeFalse()
         ->and($recursable->running())->toBeFalse()
         ->and($recursable->recursing())->toBeFalse()
         ->and($recursable->finished())->toBeFalse()
-        ->and($recursable->expose_started)->toBeFalse()
-        ->and($recursable->expose_stackDepth)->toBe(0)
+        ->and($recursable->stackDepth())->toBe(0)
         ->and($recursable->$method())->toBe('foo')
         ->and($recursable->started())->toBeTrue()
         ->and($recursable->running())->toBeFalse()
         ->and($recursable->recursing())->toBeFalse()
         ->and($recursable->finished())->toBeTrue()
-        ->and($recursable->expose_started)->toBeTrue()
-        ->and($recursable->expose_stackDepth)->toBe(0)
-        ->and(fn () => $recursable->$method())->toThrow(RecursionException::class);
+        ->and($recursable->stackDepth())->toBe(0)
+        ->and(fn () => $recursable())->toThrow(
+            RecursionException::class,
+            sprintf(RecursionException::MESSAGE_FINISHED, $recursable->signature()),
+        );
 })->with([
     'resolve',
     '__invoke',
 ]);
 
-test('resolves on recursion value if resolved recursively', function ($method) {
-    $recursable = new RecursableStub(function () use (&$recursable, $method) {
+it('resolves on recursion value if resolved recursively', function ($method) {
+    $recursable = new Recursable(function () use (&$recursable, $method) {
         expect($recursable->started())->toBeTrue()
             ->and($recursable->running())->toBeTrue()
             ->and($recursable->recursing())->toBeFalse()
             ->and($recursable->finished())->toBeFalse()
-            ->and($recursable->expose_started)->toBeTrue()
-            ->and($recursable->expose_stackDepth)->toBe(1);
+            ->and($recursable->started())->toBeTrue()
+            ->and($recursable->stackDepth())->toBe(1);
 
         return $recursable->$method();
     }, 'bar');
@@ -257,36 +225,39 @@ test('resolves on recursion value if resolved recursively', function ($method) {
         ->and($recursable->running())->toBeFalse()
         ->and($recursable->recursing())->toBeFalse()
         ->and($recursable->finished())->toBeFalse()
-        ->and($recursable->expose_started)->toBeFalse()
-        ->and($recursable->expose_stackDepth)->toBe(0)
+        ->and($recursable->started())->toBeFalse()
+        ->and($recursable->stackDepth())->toBe(0)
         ->and($recursable->$method())->toBe('bar')
         ->and($recursable->started())->toBeTrue()
         ->and($recursable->running())->toBeFalse()
         ->and($recursable->recursing())->toBeFalse()
         ->and($recursable->finished())->toBeTrue()
-        ->and($recursable->expose_started)->toBeTrue()
-        ->and($recursable->expose_stackDepth)->toBe(0)
-        ->and(fn () => $recursable->$method())->toThrow(RecursionException::class);
+        ->and($recursable->started())->toBeTrue()
+        ->and($recursable->stackDepth())->toBe(0)
+        ->and(fn () => $recursable->$method())->toThrow(
+            RecursionException::class,
+            sprintf(RecursionException::MESSAGE_FINISHED, $recursable->signature()),
+        );
 })->with([
     'resolve',
     '__invoke',
 ]);
 
-test('if calls and caches on recursion callable if resolved recursively', function ($method) {
-    $recursable = new RecursableStub(
+it('calls and caches on recursion callable if resolved recursively', function ($method) {
+    $recursable = new Recursable(
         function () use (&$recursable, $method) {
             expect($recursable->started())->toBeTrue()
                 ->and($recursable->running())->toBeTrue()
                 ->and($recursable->recursing())->toBeFalse()
                 ->and($recursable->finished())->toBeFalse()
-                ->and($recursable->expose_started)->toBeTrue()
-                ->and($recursable->expose_stackDepth)->toBe(1);
+                ->and($recursable->started())->toBeTrue()
+                ->and($recursable->stackDepth())->toBe(1);
 
             $result = $recursable->$method();
 
             expect($result)->toBe('baz')
-                ->and($recursable->expose_recurseWith)->toBe('baz')
-                ->and($recursable->expose_stackDepth)->toBe(1)
+                ->and($recursable->recurseWith())->toBe('baz')
+                ->and($recursable->stackDepth())->toBe(1)
                 ->and($recursable->recursing())->toBeFalse()
                 ->and($recursable->$method())->toBe($result);
 
@@ -297,8 +268,8 @@ test('if calls and caches on recursion callable if resolved recursively', functi
                 ->and($recursable->running())->toBeTrue()
                 ->and($recursable->recursing())->toBeTrue()
                 ->and($recursable->finished())->toBeFalse()
-                ->and($recursable->expose_started)->toBeTrue()
-                ->and($recursable->expose_stackDepth)->toBe(2);
+                ->and($recursable->started())->toBeTrue()
+                ->and($recursable->stackDepth())->toBe(2);
 
             return 'baz';
         }
@@ -308,17 +279,48 @@ test('if calls and caches on recursion callable if resolved recursively', functi
         ->and($recursable->running())->toBeFalse()
         ->and($recursable->recursing())->toBeFalse()
         ->and($recursable->finished())->toBeFalse()
-        ->and($recursable->expose_started)->toBeFalse()
-        ->and($recursable->expose_stackDepth)->toBe(0)
+        ->and($recursable->started())->toBeFalse()
+        ->and($recursable->stackDepth())->toBe(0)
         ->and($recursable->$method())->toBe('baz')
         ->and($recursable->started())->toBeTrue()
         ->and($recursable->running())->toBeFalse()
         ->and($recursable->recursing())->toBeFalse()
         ->and($recursable->finished())->toBeTrue()
-        ->and($recursable->expose_started)->toBeTrue()
-        ->and($recursable->expose_stackDepth)->toBe(0)
-        ->and(fn () => $recursable->$method())->toThrow(RecursionException::class);
+        ->and($recursable->started())->toBeTrue()
+        ->and($recursable->stackDepth())->toBe(0)
+        ->and(fn () => $recursable->$method())->toThrow(
+            RecursionException::class,
+            sprintf(RecursionException::MESSAGE_FINISHED, $recursable->signature())
+        );
 })->with([
     'resolve',
     '__invoke',
+]);
+
+it('allows read access to properties', function () {
+    $callback = fn () => 'foo';
+    $object = new stdClass();
+
+    $recursable = (new Recursable($callback, 'bar', 'baz'))->forObject($object);
+
+    expect($recursable->signature())->toBe('baz')
+        ->and($recursable->hash())->toBe(hash('xxh128', 'baz'))
+        ->and($recursable->callback())->toBe($callback)
+        ->and($recursable->recurseWith())->toBe('bar')
+        ->and($recursable->object())->toBe($object)
+        ->and($recursable->started())->toBeFalse()
+        ->and($recursable->stackDepth())->toBe(0);
+});
+
+it('rejects read access to properties that do not exist', function ($method) {
+    $recursable = new Recursable(fn () => 'foo');
+
+    expect(fn () => $recursable->$method())->toThrow(
+        \BadMethodCallException::class,
+        sprintf('Call to undefined method %s::%s()', Recursable::class, $method)
+    );
+})->with([
+    'unknown',
+    'foo',
+    '0',
 ]);

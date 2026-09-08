@@ -26,31 +26,29 @@ it('only allows array read access to properties', function ($offset, $set, $exis
         (object) [],
     );
 
-    $message = RecursionContext::class . ' is read-only';
-
-    expect(fn () => $context->offsetSet($offset, $set))->toThrow(\RuntimeException::class, $message)
+    expect(fn () => $context->offsetSet($offset, $set))->toThrow(\Error::class)
         ->and($context->offsetGet($offset))->toEqual($value)
-        ->and(fn () => $context->offsetUnset($offset))->toThrow(\RuntimeException::class, $message)
+        ->and(fn () => $context->offsetUnset($offset))->toThrow(\Error::class)
         ->and($context->offsetExists($offset))->toEqual($exists)
         ->and(function () use (&$context, $offset, $set) {
             $context[$offset] = $set;
-        })->toThrow(\RuntimeException::class, $message)
+        })->toThrow(\Error::class)
         ->and($context[$offset])->toEqual($value)
         ->and(function () use (&$context, $offset) {
             unset($context[$offset]);
-        })->toThrow(\RuntimeException::class, $message)
+        })->toThrow(\Error::class)
         ->and(isset($context[$offset]))->toEqual($exists);
 })->with([
     'file' => ['file', 'bing.php', true, 'foo.php'],
     'function' => ['function', 'bang', true, 'bar'],
     'class' => ['class', 'bong', true, 'baz'],
     'line' => ['line', 99, true, 42],
-    'object' => ['object', new RecursionContext(), true, (object) []],
+    'object' => fn () => ['object', new RecursionContext(), true, (object) []],
     'signature' => ['signature', 'bing.php:bang@bong', true, 'foo.php:baz@bar'],
     'unknown string' => ['foo', 'foo', false, null],
     'static method' => ['make', 'bar', false, null],
     'instance method' => ['jsonSerialize', 'bing', false, null],
     'first index' => [0, 1, false, null],
     'last index' => [5, 6, false, null],
-    'random index' => [random_int(PHP_INT_MIN, PHP_INT_MAX), 42, false, null],
+    'random index' => fn () => [random_int(PHP_INT_MIN, PHP_INT_MAX), 42, false, null],
 ]);

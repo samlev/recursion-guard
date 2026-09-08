@@ -68,6 +68,7 @@ readonly class Trace extends BaseData implements Countable
     /**
      * @return bool
      */
+    #[\Override]
     public function empty(): bool
     {
         return empty($this->frames());

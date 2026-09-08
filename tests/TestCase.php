@@ -4,15 +4,20 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use PHPUnit\Framework\Attributes\After;
+use PHPUnit\Framework\Attributes\Before;
 use PHPUnit\Framework\TestCase as BaseTestCase;
-use Tests\Support\StubSpy;
+use RecursionGuard\Recurser;
+use Tests\Support\VerifiesSpies;
 
 abstract class TestCase extends BaseTestCase
 {
-    public ?StubSpy $spy = null;
+    use VerifiesSpies;
 
-    protected function spy(): StubSpy
+    #[After]
+    #[Before]
+    public function flushRecurser(): void
     {
-        return $this->spy ??= StubSpy::make($this);
+        Recurser::flush();
     }
 }

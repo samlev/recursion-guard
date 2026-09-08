@@ -81,6 +81,25 @@ it('only ignores keys for keys array', function () {
         ->toBe(['bar' => 'foo']);
 });
 
-it('only ignores invalid key types', function () {
-    Arr::only([], [[], true, null, (object) [], 3.14]);
-})->throwsNoExceptions();
+it('ignores invalid key types', function () {
+    expect(Arr::only([1, 2, 3, 4], [[1, 2, 3], true, null, (object) [], 3.14, 2]))
+        ->toEqual([2 => 3]);
+});
+
+it('handles arrays with duplicate numeric keys', function () {
+    expect(Arr::only(
+        [1, 2, 3, 4, 5, 6, 7],
+        [0, 0, 1, 2, 2, 3, 5, 5],
+    ))->toEqual([
+        0 => 1,
+        1 => 2,
+        2 => 3,
+        3 => 4,
+        5 => 6,
+    ]);
+});
+
+it('preserves original key order', function () {
+    expect(Arr::only(['a' => 1, 'b' => 2, 'c' => 3], ['c', 'b', 'a']))
+        ->toBe(['a' => 1, 'b' => 2, 'c' => 3]);
+});

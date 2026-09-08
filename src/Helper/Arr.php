@@ -12,7 +12,7 @@ class Arr
      * @template TArray of array<array-key, mixed>
      *
      * @param TArray $array
-     * @param array<array-key, key-of<TArray>> $keys
+     * @param array<array-key, mixed> $keys
      * @return TArray
      */
     public static function only(array $array, array $keys): array
@@ -20,11 +20,9 @@ class Arr
         return array_intersect_key(
             $array,
             array_flip(
-                array_unique(
-                    array_filter(
-                        array_values($keys),
-                        fn ($v) => is_int($v) || is_string($v), // @phpstan-ignore function.alreadyNarrowedType
-                    )
+                array_filter(
+                    $keys,
+                    fn ($v): bool => is_int($v) || is_string($v),
                 )
             )
         );
