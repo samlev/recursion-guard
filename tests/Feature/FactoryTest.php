@@ -2,7 +2,8 @@
 
 declare(strict_types=1);
 
-use Mockery as m;
+use JMac\Testing\Double;
+use JMac\Testing\Matching\Argument;
 use RecursionGuard\Data\Frame;
 use RecursionGuard\Data\RecursionContext;
 use RecursionGuard\Data\Trace;
@@ -85,67 +86,63 @@ it('makes context from trace with single frame (null called frame)', function ()
 });
 
 it('makes context from trace array if array is not empty', function ($from) {
-    $factory = m::mock(Factory::class)->makePartial();
+    $factory = Double::for(Factory::class)->passthru(new Factory());
 
     $callable = fn () => null;
     $context = new RecursionContext(signature: 'trace');
     $trace = Trace::make($from);
 
-    $factory->shouldReceive('makeTrace')->once()->andReturn($trace);
-    $factory->shouldReceive('makeContextFromCallable')->never();
-    $factory->shouldReceive('makeContextFromTrace')
-        ->once()
-        ->with($trace)
-        ->andReturn($context);
+    $factory->expects('makeTrace')->returns($trace);
+    $factory->allows('makeContextFromCallable')->never();
+    $factory->expects('makeContextFromTrace')
+        ->with(Argument::same($trace))
+        ->returns($context);
 
     expect($factory->makeContext($callable, $from))->toBe($context);
 })->with('frame arrays');
 
 it('does not make context from trace array if array is empty', function ($from) {
-    $factory = m::mock(Factory::class)->makePartial();
+    $factory = Double::for(Factory::class)->passthru(new Factory());
 
     $callable = fn () => null;
     $context = new RecursionContext(signature: 'callable');
     $trace = Trace::make($from);
 
-    $factory->shouldReceive('makeTrace')->once()->andReturn($trace);
-    $factory->shouldReceive('makeContextFromTrace')->never();
-    $factory->shouldReceive('makeContextFromCallable')
-        ->once()
-        ->with($callable)
-        ->andReturn($context);
+    $factory->expects('makeTrace')->returns($trace);
+    $factory->allows('makeContextFromTrace')->never();
+    $factory->expects('makeContextFromCallable')
+        ->with(Argument::same($callable))
+        ->returns($context);
 
     expect($factory->makeContext($callable, $from))->toBe($context);
 })->with('empty frame arrays');
 
 it('makes context from trace object if trace is not empty', function ($trace) {
-    $factory = m::mock(Factory::class)->makePartial();
+    $factory = Double::for(Factory::class)->passthru(new Factory());
 
     $callable = fn () => null;
     $context = new RecursionContext(signature: 'trace');
 
-    $factory->shouldReceive('makeTrace')->once()->andReturn($trace);
-    $factory->shouldReceive('makeContextFromCallable')->never();
-    $factory->shouldReceive('makeContextFromTrace')
-        ->once()
-        ->with($trace)
-        ->andReturn($context);
+    $factory->expects('makeTrace')->returns($trace);
+    $factory->allows('makeContextFromCallable')->never();
+    $factory->expects('makeContextFromTrace')
+        ->with(Argument::same($trace))
+        ->returns($context);
 
     expect($factory->makeContext($callable, $trace))->toBe($context);
 })->with('trace objects');
 
 it('does not make context from trace object if trace is empty', function (Trace $trace) {
-    $factory = m::mock(Factory::class)->makePartial();
+    $factory = Double::for(Factory::class)->passthru(new Factory());
 
     $callable = fn () => null;
     $context = new RecursionContext(signature: 'callable');
 
-    $factory->shouldReceive('makeTrace')->once()->andReturn($trace);
-    $factory->shouldReceive('makeContextFromTrace')->never();
-    $factory->shouldReceive('makeContextFromCallable')
-        ->once()
-        ->with($callable)
-        ->andReturn($context);
+    $factory->expects('makeTrace')->returns($trace);
+    $factory->allows('makeContextFromTrace')->never();
+    $factory->expects('makeContextFromCallable')
+        ->with(Argument::same($callable))
+        ->returns($context);
 
     expect($factory->makeContext($callable, $trace))->toBe($context);
 })->with('empty trace objects');
@@ -176,7 +173,7 @@ it('should not make context from non-empty trace frames', function (Trace $from)
 })->with('empty trace objects');
 
 it('should make context from the correct method with callable', function ($from, $type) {
-    $factory = m::mock(Factory::class)->makePartial();
+    $factory = Double::for(Factory::class)->passthru(new Factory());
 
     $context = new RecursionContext(signature: $type);
 
@@ -187,12 +184,11 @@ it('should make context from the correct method with callable', function ($from,
     ];
     unset($methods[$type]);
 
-    $factory->shouldReceive($type)
-        ->once()
-        ->withArgs(fn ($args) => $args === $from)
-        ->andReturn($context);
+    $factory->expects($type)
+        ->with(Argument::same($from))
+        ->returns($context);
 
-    array_map(fn ($method) => $factory->shouldReceive($method)->never(), array_keys($methods));
+    array_map(fn ($method) => $factory->allows($method)->never(), array_keys($methods));
 
     expect($factory->makeContextFromCallable($from))->toBe($context);
 })->with([
