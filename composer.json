@@ -10,7 +10,7 @@
         "squizlabs/php_codesniffer": "^4.0",
         "phpstan/phpstan": "^2.0",
         "friendsofphp/php-cs-fixer": "^3.0",
-        "jasonmccreary/double": "dev-master"
+        "jasonmccreary/double": "^0.8.0"
     },
     "license": "MIT",
     "authors": [
