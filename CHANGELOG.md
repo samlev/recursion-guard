@@ -1,5 +1,17 @@
 # Release Notes
 
+## v1.3.0 - 2026-09-11
+
+### What's Changed
+
+* Replaced mockery with double by [@samlev](https://github.com/samlev) in https://github.com/samlev/recursion-guard/pull/4
+
+### Breaking changes
+
+* Dropped support for PHP8.2
+
+**Full Changelog**: https://github.com/samlev/recursion-guard/compare/v1.2.0...v1.3.0
+
 ## v1.2.0 - 2026-09-08
 
 ### What's Changed
