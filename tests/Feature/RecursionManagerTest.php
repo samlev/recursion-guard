@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use RecursionGuard\Recurser;
+use RecursionGuard\Exception\RecursionException;
 use Tests\Support\Feature\Model;
 
 it('prevents recursion in closure', function () {
@@ -24,6 +25,37 @@ it('prevents recursion in closure', function () {
         ->and($method())->toEqual([5, 5, 5])
         ->and($calls)->toBe(8)
         ->and($callback)->toBe(2);
+});
+
+it('preserves a fallback exception as previous when its finally block recurses', function () {
+    $callbackCalls = 0;
+    $original = new RuntimeException('fallback failed');
+
+    $method = function () use (&$method, &$callbackCalls, $original) {
+        return Recurser::call(
+            function () use (&$method, &$callbackCalls) {
+                $callbackCalls++;
+
+                return $method();
+            },
+            function () use (&$method, $original) {
+                try {
+                    throw $original;
+                } finally {
+                    $method();
+                }
+            },
+        );
+    };
+
+    try {
+        $method();
+        fail('Expected recursion during fallback resolution to throw.');
+    } catch (RecursionException $exception) {
+        expect($exception->getMessage())->toContain('called while resolving return value')
+            ->and($exception->getPrevious())->toBe($original)
+            ->and($callbackCalls)->toBe(1);
+    }
 });
 
 it('uses cached on recursion value', function () {

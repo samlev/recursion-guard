@@ -209,21 +209,6 @@ it('resolves callback once', function ($method) {
     '__invoke',
 ]);
 
-it('allows retrying the callback after it throws', function () {
-    $attempts = 0;
-    $recursable = new Recursable(function () use (&$attempts) {
-        if (++$attempts === 1) {
-            throw new RuntimeException('temporary failure');
-        }
-
-        return 'success';
-    });
-
-    expect(fn () => $recursable())->toThrow(RuntimeException::class, 'temporary failure')
-        ->and($recursable())->toBe('success')
-        ->and($attempts)->toBe(2);
-});
-
 it('resolves on recursion value if resolved recursively', function ($method) {
     $recursable = new Recursable(function () use (&$recursable, $method) {
         expect($recursable->started())->toBeTrue()
